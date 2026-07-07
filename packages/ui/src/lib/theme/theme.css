@@ -1,0 +1,43 @@
+@theme {
+  --color-primary: #E86200;
+  --color-primary-contrast: #efe4dc;
+  --color-secondary: #4004e5;
+  --color-secondary-contrast: #ece8f4;
+  --color-accent: #00E8D6;
+  --color-accent-contrast: #121314;
+  --color-success: #16a34a;
+  --color-success-contrast: #ffffff;
+  --color-warning: #d97706;
+  --color-warning-contrast: #000000;
+  --color-danger: #dc2626;
+  --color-danger-contrast: #ffffff;
+  --color-surface: #070216;
+  --color-surface-contrast: #F8FAFC;
+  --color-surface2: #140d28;
+  --color-surface2-contrast: #F1F5F9;
+  --color-surface3: #1D293D;
+  --color-surface3-contrast: #E2E8F0;
+  --color-surface4: #314158;
+  --color-surface4-contrast: #CAD5E2;
+}
+
+/* old colors for when dark mode setting is turned on 
+--color-surface: #F8FAFC;
+--color-surface-contrast: #070216;
+--color-surface2: #F1F5F9;
+--color-surface2-contrast: #140d28;
+--color-surface3: #E2E8F0;
+--color-surface3-contrast: #1D293D;
+--color-surface4: #CAD5E2;
+--color-surface4-contrast: #314158; */
+
+html[data-theme='dark'] {
+  --color-surface: #070216;
+  --color-surface-contrast: #F8FAFC;
+  --color-surface2: #140d28;
+  --color-surface2-contrast: #F1F5F9;
+  --color-surface3: #1D293D;
+  --color-surface3-contrast: #E2E8F0;
+  --color-surface4: #314158;
+  --color-surface4-contrast: #CAD5E2;
+}

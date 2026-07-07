@@ -1,0 +1,49 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compileOnSave": false,
+  "files": [],
+  "references": [
+    {
+      "path": "./apps/web"
+    },
+    {
+      "path": "./apps/cms"
+    },
+    {
+      "path": "./apps/api"
+    },
+    {
+      "path": "./packages/api-core"
+    },
+    {
+      "path": "./packages/types"
+    },
+    {
+      "path": "./packages/api-collections"
+    },
+    {
+      "path": "./packages/asset-manager"
+    },
+    {
+      "path": "./packages/store"
+    },
+    {
+      "path": "./packages/ui"
+    },
+    {
+      "path": "./packages/pages"
+    },
+    {
+      "path": "./packages/router"
+    },
+    {
+      "path": "./packages/utils"
+    },
+    {
+      "path": "./packages/file-manager"
+    },
+    {
+      "path": "./packages/pubsub"
+    }
+  ]
+}

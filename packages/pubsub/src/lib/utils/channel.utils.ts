@@ -1,0 +1,1 @@
+export const buildChannel = (domain: string, entityId: string): string => `${domain}:${entityId}`;

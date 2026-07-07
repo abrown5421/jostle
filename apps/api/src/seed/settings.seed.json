@@ -1,0 +1,65 @@
+[
+  {
+    "key": "logo-asset",
+    "value": "{{VITE_API_ORIGIN}}/api/assets/by-key/755bcffd-a2af-4f46-95aa-54755f5d42d3.png",
+    "description": "",
+    "is_public": false,
+    "seedPolicy": "assert"
+  },
+  {
+    "key": "profile-info-address",
+    "value": true,
+    "description": "",
+    "is_public": false,
+    "seedPolicy": "assert"
+  },
+  {
+    "key": "profile-info-phone",
+    "value": true,
+    "description": "",
+    "is_public": false,
+    "seedPolicy": "assert"
+  },
+  {
+    "key": "profile-info-dob",
+    "value": true,
+    "description": "",
+    "is_public": false,
+    "seedPolicy": "assert"
+  },
+  {
+    "key": "profile-info-gender",
+    "value": true,
+    "description": "",
+    "is_public": false,
+    "seedPolicy": "assert"
+  },
+  {
+    "key": "profile-info-bio",
+    "value": true,
+    "description": "",
+    "is_public": false,
+    "seedPolicy": "assert"
+  },
+  {
+    "key": "profile-info-dark-mode",
+    "value": true,
+    "description": "",
+    "is_public": false,
+    "seedPolicy": "assert"
+  },
+  {
+    "key": "primary-font-asset",
+    "value": "{{VITE_API_ORIGIN}}/api/assets/by-key/dfaef7d4-e504-4a89-b43b-352f502427fc.ttf",
+    "description": "",
+    "is_public": false,
+    "seedPolicy": "assert"
+  },
+  {
+    "key": "secondary-font-asset",
+    "value": "{{VITE_API_ORIGIN}}/api/assets/by-key/cf27557b-e1ac-4cae-9898-cce5118b0176.ttf",
+    "description": "",
+    "is_public": false,
+    "seedPolicy": "assert"
+  }
+]

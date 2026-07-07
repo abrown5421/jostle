@@ -1,0 +1,38 @@
+[
+  {
+    "filename": "755bcffd-a2af-4f46-95aa-54755f5d42d3.png",
+    "original_name": "c0329fbe3a77d53cfa101b64b1f817d6.png",
+    "mimetype": "image/png",
+    "size": 2626265,
+    "storage_key": "755bcffd-a2af-4f46-95aa-54755f5d42d3.png",
+    "category": "image",
+    "is_system_asset": false,
+    "owner_type": "app",
+    "owner_id": null,
+    "seedPolicy": "once"
+  },
+  {
+    "filename": "dfaef7d4-e504-4a89-b43b-352f502427fc.ttf",
+    "original_name": "primary.ttf",
+    "mimetype": "font/ttf",
+    "size": 55300,
+    "storage_key": "dfaef7d4-e504-4a89-b43b-352f502427fc.ttf",
+    "category": "font",
+    "is_system_asset": false,
+    "owner_type": "app",
+    "owner_id": null,
+    "seedPolicy": "once"
+  },
+  {
+    "filename": "cf27557b-e1ac-4cae-9898-cce5118b0176.ttf",
+    "original_name": "secondary.ttf",
+    "mimetype": "font/ttf",
+    "size": 265068,
+    "storage_key": "cf27557b-e1ac-4cae-9898-cce5118b0176.ttf",
+    "category": "font",
+    "is_system_asset": false,
+    "owner_type": "app",
+    "owner_id": null,
+    "seedPolicy": "once"
+  }
+]
