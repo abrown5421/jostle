@@ -14,20 +14,20 @@ registerProfileTab({
 });
 
 registerProfileTab({
-  id: 'profile-connected-accounts-tab',
-  label: 'Connect Accounts',
-  leadingIcon: 'UserCheck',
-  component: ProfileConnectedAccountsTab,
-  ownProfileOnly: false,
-});
-
-registerProfileTab({
   id: 'profile-friends-tab',
   label: 'Friends',
   leadingIcon: 'Users',
   component: ProfileFriendsTab,
   ownProfileOnly: false,
   requiredSetting: 'friend-module',
+});
+
+registerProfileTab({
+  id: 'profile-connected-accounts-tab',
+  label: 'Connect Accounts',
+  leadingIcon: 'UserCheck',
+  component: ProfileConnectedAccountsTab,
+  ownProfileOnly: true,
 });
 
 registerProfileTab({

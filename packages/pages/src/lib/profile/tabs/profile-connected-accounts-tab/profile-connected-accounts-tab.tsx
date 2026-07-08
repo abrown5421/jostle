@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ProfileTabPanelProps } from '../profile-tab-registry';
 import { Box, Dialog, Text } from '@inithium/ui';
 import { 
   useReadActiveConnectionsByUserQuery, 
-  useCreateConnectedAccountMutation, 
-  useDeleteConnectedAccountMutation 
+  useDeleteConnectedAccountMutation, 
+  showAlert
 } from '@inithium/store'; 
+import { useDispatch } from 'react-redux';
 
 interface ProviderDefinition {
   id: string;
@@ -14,16 +15,16 @@ interface ProviderDefinition {
 }
 
 export const ProfileConnectedAccountsTab: React.FC<ProfileTabPanelProps> = ({ activeUser }) => {
+  const dispatch = useDispatch();
   const userId = activeUser?._id ?? '';
-  
+
   const { data: connectedAccounts = [], isLoading } = useReadActiveConnectionsByUserQuery(userId, {
     skip: !userId,
   });
-  const [createConnection] = useCreateConnectedAccountMutation();
   const [deleteConnection] = useDeleteConnectedAccountMutation();
 
   const [selectedProvider, setSelectedProvider] = useState<ProviderDefinition | null>(null);
-  const [modalMode, setModalMode] = useState<'connect' | 'disconnect' | null>(null);
+  const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
 
   const apiOrigin = import.meta.env.VITE_API_ORIGIN || 'http://localhost:3000';
 
@@ -40,6 +41,33 @@ export const ProfileConnectedAccountsTab: React.FC<ProfileTabPanelProps> = ({ ac
     },
   ];
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const connectedProvider = params.get('success');
+
+    if (connectedProvider) {
+      const providerName = providers.find(p => p.id === connectedProvider)?.name || connectedProvider;
+
+      dispatch(
+        showAlert({
+          message: `${providerName.toLowerCase()} account connected successfully`,
+          severity: 'success',
+          closeable: false,
+          position: 'bottom-right',
+          animation_object: {
+            entry: 'fadeInRight',
+            exit: 'fadeOutRight',
+            entrySpeed: 'fast',
+            exitSpeed: 'faster',
+          },
+        }),
+      );
+
+      const cleanUrl = window.location.protocol + '//' + window.location.host + window.location.pathname;
+      window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+    }
+  }, [dispatch]);
+
   const activeConnections = providers.filter((p) =>
     connectedAccounts.some((account) => account.provider === p.id && account.status === 'active')
   );
@@ -48,31 +76,26 @@ export const ProfileConnectedAccountsTab: React.FC<ProfileTabPanelProps> = ({ ac
     !connectedAccounts.some((account) => account.provider === p.id && account.status === 'active')
   );
 
-  const handleCloseModal = () => {
-    setSelectedProvider(null);
-    setModalMode(null);
+  const handleConnect = (providerId: string) => {
+    if (!userId) return;
+    window.location.href = `${apiOrigin}/api/media-services/${providerId}/connect?userId=${userId}`;
   };
 
-  const handleConfirmAction = async () => {
+  const handleCloseDisconnectModal = () => {
+    setSelectedProvider(null);
+    setIsDisconnectModalOpen(false);
+  };
+
+  const handleConfirmDisconnect = async () => {
     if (!selectedProvider || !userId) return;
 
-    if (modalMode === 'connect') {
-      await createConnection({
-        userId,
-        provider: selectedProvider.id,
-        providerAccountId: `mock-${Date.now()}`,
-        status: 'active',
-        credentials: { accessToken: 'mock-token' },
-      }).unwrap();
-    } else if (modalMode === 'disconnect') {
-      const targetingAccount = connectedAccounts.find(
-        (a) => a.provider === selectedProvider.id && a.status === 'active'
-      );
-      if (targetingAccount) {
-        await deleteConnection(targetingAccount._id).unwrap();
-      }
+    const targetingAccount = connectedAccounts.find(
+      (a) => a.provider === selectedProvider.id && a.status === 'active'
+    );
+    if (targetingAccount) {
+      await deleteConnection(targetingAccount._id).unwrap();
     }
-    handleCloseModal();
+    handleCloseDisconnectModal();
   };
 
   if (isLoading) {
@@ -103,7 +126,7 @@ export const ProfileConnectedAccountsTab: React.FC<ProfileTabPanelProps> = ({ ac
                 <button
                   onClick={() => {
                     setSelectedProvider(provider);
-                    setModalMode('disconnect');
+                    setIsDisconnectModalOpen(true);
                   }}
                   className="mt-3 text-xs text-red-500 hover:text-red-700 font-medium transition-colors"
                 >
@@ -126,11 +149,8 @@ export const ProfileConnectedAccountsTab: React.FC<ProfileTabPanelProps> = ({ ac
             {availableToConnect.map((provider) => (
               <Box
                 key={provider.id}
-                onClick={() => {
-                  setSelectedProvider(provider);
-                  setModalMode('connect');
-                }}
-                className="flex flex-col items-center p-5 border border-dashed border-neutral-300 rounded-xl bg-surface/50 opacity-70 hover:opacity-100 hover:border-solid hover:border-primary cursor-pointer transition-all min-w-[160px]"
+                onClick={() => handleConnect(provider.id)}
+                className="flex flex-col items-center p-5 border border-dashed border-neutral-300 rounded-xl bg-surface/50 opacity-70 hover:opacity-100 hover:border-solid hover:border-primary cursor-pointer transition-all min-w-[160px] group"
               >
                 <img src={provider.logo} alt={provider.name} className="w-14 h-14 object-contain grayscale mb-3 group-hover:grayscale-0" />
                 <Text color="surface-contrast" overrideClassName="text-sm font-medium">{provider.name}</Text>
@@ -142,40 +162,29 @@ export const ProfileConnectedAccountsTab: React.FC<ProfileTabPanelProps> = ({ ac
       </Box>
 
       <Dialog
-        open={modalMode !== null}
-        onClose={handleCloseModal}
-        title={modalMode === 'connect' ? `Link ${selectedProvider?.name}` : `Disconnect ${selectedProvider?.name}`}
+        open={isDisconnectModalOpen}
+        onClose={handleCloseDisconnectModal}
+        title={`Disconnect ${selectedProvider?.name}`}
         size="md"
         actions={[
           {
             label: 'Cancel',
             variant: 'outline',
             color: 'neutral' as any,
-            onClick: handleCloseModal,
+            onClick: handleCloseDisconnectModal,
           },
           {
-            label: modalMode === 'connect' ? 'Connect' : 'Confirm Disconnect',
-            color: modalMode === 'connect' ? 'primary' : 'danger',
-            onClick: handleConfirmAction,
+            label: 'Confirm Disconnect',
+            color: 'danger',
+            onClick: handleConfirmDisconnect,
           },
         ]}
       >
-        {modalMode === 'connect' ? (
-          <Box className="flex flex-col gap-2 py-2">
-            <Text overrideClassName="text-sm text-neutral-600">
-              You are about to link your <strong>{selectedProvider?.name}</strong> account. This enables full data synchronization features with your profile.
-            </Text>
-            <Text overrideClassName="text-xs text-neutral-400 italic">
-              Note: This is currently performing a local UI pipeline integration test. Direct OAuth workflows will be plugged in here later.
-            </Text>
-          </Box>
-        ) : (
-          <Box className="py-2">
-            <Text overrideClassName="text-sm text-neutral-600">
-              Are you sure you want to remove your integration with <strong>{selectedProvider?.name}</strong>? Your synced integration features will stop working immediately.
-            </Text>
-          </Box>
-        )}
+        <Box className="py-2">
+          <Text overrideClassName="text-sm text-neutral-600">
+            Are you sure you want to remove your integration with <strong>{selectedProvider?.name}</strong>? Your synced integration features will stop working immediately.
+          </Text>
+        </Box>
       </Dialog>
     </Box>
   );

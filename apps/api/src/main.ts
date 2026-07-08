@@ -25,6 +25,7 @@ import {
   systemErrorsRouter,
   SystemErrorModel,
   connectedAccountsRouter,
+  ConnectedAccountModel,
 } from '@inithium/api-collections';
 import { createAssetManager } from '@inithium/asset-manager';
 import {
@@ -47,8 +48,12 @@ import { triggerEngagementDeploy } from './deploy-hook.service';
 import { runHydration } from './run-hydration';
 import { setFriendsPubSub } from '@inithium/api-collections';
 import { SeedManifestModel } from './seed/manifest.model';
+import { 
+  createMediaIntegrationsRouter, 
+  SpotifyProvider 
+} from '@inithium/integrations';
 
-const host = process.env['HOST'] ?? 'localhost';
+const host = process.env['HOST'] ?? '0.0.0.0'; 
 const port = process.env['PORT'] ? Number(process.env['PORT']) : 3000;
 const mongoUri = process.env['MONGO_URI'] ?? 'mongodb://localhost:27017/my-app';
 
@@ -138,6 +143,38 @@ const fileManagerRouter = createFileManagerRouter([
   },
 ]);
 
+const mediaIntegrationsRouter = createMediaIntegrationsRouter({
+  providers: [
+    new SpotifyProvider(
+      process.env.SPOTIFY_CLIENT_ID!,
+      process.env.SPOTIFY_CLIENT_SECRET!,
+      process.env.SPOTIFY_REDIRECT_URI!
+    )
+  ],
+  onSaveConnection: async (userId: string, providerId: string, providerAccountId: string, credentials: any) => {
+    await ConnectedAccountModel.updateOne(
+      { userId, provider: providerId },
+      {
+        $set: {
+          userId,
+          provider: providerId,
+          providerAccountId,
+          status: 'active',
+          credentials,
+          updatedAt: new Date()
+        }
+      },
+      { upsert: true }
+    );
+  },
+  onLookupCredentials: async (userId: string, providerId: string) => {
+    const account = await ConnectedAccountModel.findOne({ userId, provider: providerId, status: 'active' });
+    if (!account) throw new Error('Account correlation matrix missing permissions');
+    return account.credentials.accessToken;
+  },
+  frontendSuccessUrl: process.env.FRONTEND_SUCCESS_URL || 'http://localhost:5173/profile'
+});
+
 const app = express();
 
 app.use(
@@ -163,6 +200,7 @@ app.use('/api/file-manager', fileManagerRouter);
 app.use('/api/friends', friendsRouter);
 app.use('/api/system-errors', systemErrorsRouter);
 app.use('/api/connected-accounts', connectedAccountsRouter);
+app.use('/api/media-services', mediaIntegrationsRouter);
 
 app.get('/', (_req, res) => {
   res.send({ message: 'Inithium API' });

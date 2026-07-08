@@ -44,6 +44,9 @@
     },
     {
       "path": "./packages/pubsub"
+    },
+    {
+      "path": "./packages/integrations"
     }
   ]
 }

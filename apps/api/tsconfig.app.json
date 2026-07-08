@@ -10,6 +10,9 @@
   "exclude": [],
   "references": [
     {
+      "path": "../../packages/integrations/tsconfig.lib.json"
+    },
+    {
       "path": "../../packages/types/tsconfig.lib.json"
     },
     {
