@@ -26,6 +26,10 @@ import {
   SystemErrorModel,
   connectedAccountsRouter,
   ConnectedAccountModel,
+  sessionsRouter,
+  setSessionsPubSub,
+  SESSION_DOMAIN,
+  sessionsService,
 } from '@inithium/api-collections';
 import { createAssetManager } from '@inithium/asset-manager';
 import {
@@ -201,6 +205,7 @@ app.use('/api/friends', friendsRouter);
 app.use('/api/system-errors', systemErrorsRouter);
 app.use('/api/connected-accounts', connectedAccountsRouter);
 app.use('/api/media-services', mediaIntegrationsRouter);
+app.use('/api/sessions', sessionsRouter);
 
 app.get('/', (_req, res) => {
   res.send({ message: 'Inithium API' });
@@ -240,6 +245,7 @@ async function bootstrap() {
 
   const pubsub = createPubSub(createDefaultAdapter());
   setFriendsPubSub(pubsub);
+  setSessionsPubSub(pubsub);
 
   const presenceTracker = createPresenceTracker({
     awayTimeoutMs: AWAY_TIMEOUT_MS,
@@ -261,8 +267,19 @@ async function bootstrap() {
     console.log(`[ assets ] ${process.env['ASSETS_ROOT']}`);
   });
 
-  const canJoinChannel = async (user: AccessTokenPayload, channel: string): Promise<boolean> =>
-    channel.startsWith(`user:${user.sub}`) || channel.startsWith(`${PRESENCE_DOMAIN}:`);
+  const canJoinChannel = async (user: AccessTokenPayload, channel: string): Promise<boolean> => {
+    if (channel.startsWith(`user:${user.sub}`) || channel.startsWith(`${PRESENCE_DOMAIN}:`)) {
+      return true;
+    }
+
+    if (!channel.startsWith(`${SESSION_DOMAIN}:`)) return false;
+
+    const sessionId = channel.slice(`${SESSION_DOMAIN}:`.length);
+    const session = await sessionsService.readOne(sessionId);
+    if (!session) return false;
+
+    return session.host_id === user.sub || session.players.some((player) => player.user_id === user.sub);
+  };
 
   createSocketServer({
     httpServer,
