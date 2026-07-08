@@ -6,3 +6,6 @@ export * from './lib/hooks/use-friend-notifications'
 export * from './lib/socket/socket-client'
 export * from './lib/hooks/use-presence.js';
 export * from './lib/hooks/use-activity-heartbeat.js';
+export * from './lib/hooks/use-pubsub-channel';
+export * from './lib/hooks/use-app-dispatch';
+export * from './lib/hooks/use-app-selector'

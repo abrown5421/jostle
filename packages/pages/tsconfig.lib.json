@@ -36,6 +36,9 @@
   ],
   "references": [
     {
+      "path": "../pubsub/tsconfig.lib.json"
+    },
+    {
       "path": "../router/tsconfig.lib.json"
     },
     {

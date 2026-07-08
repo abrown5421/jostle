@@ -1,5 +1,6 @@
 import type { GameSession } from '@inithium/types';
-import type { PaginatedResult, PaginationQuery } from '@inithium/api-core';
+import type { MutationDefinition, QueryDefinition } from '@reduxjs/toolkit/query';
+import type { PaginationQuery, PaginatedResult } from '@inithium/api-core';
 import { createCrudEndpoints } from '../../base/crud-api-factory.js';
 import { baseApi } from '../../base/base-api.js';
 import type { JoinSessionDto } from '@inithium/api-collections';
@@ -7,11 +8,21 @@ import type { JoinSessionDto } from '@inithium/api-collections';
 export type CreateSessionDto = Omit<GameSession, '_id'>;
 export type UpdateSessionDto = Partial<CreateSessionDto>;
 
+type SessionCrudEndpoints = {
+  createSession: MutationDefinition<CreateSessionDto, any, any, GameSession>;
+  readOneSession: QueryDefinition<string, any, any, GameSession>;
+  readManySession: QueryDefinition<readonly string[], any, any, readonly GameSession[]>;
+  readPageSession: QueryDefinition<PaginationQuery | void, any, any, PaginatedResult<GameSession>>;
+  updateOneSession: MutationDefinition<{ id: string; data: UpdateSessionDto }, any, any, GameSession>;
+  deleteOneSession: MutationDefinition<string, any, any, GameSession>;
+  deleteManySession: MutationDefinition<readonly string[], any, any, { readonly deletedCount: number }>;
+};
+
 const endpoints = createCrudEndpoints<GameSession, CreateSessionDto, UpdateSessionDto>('sessions', 'Session');
 
 export const sessionsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    ...endpoints(builder),
+    ...(endpoints(builder) as unknown as SessionCrudEndpoints),
     readSessionByJoinCode: builder.query<GameSession, string>({
       query: (joinCode) => ({ url: `/sessions/code/${joinCode}` }),
       providesTags: ['Session'],
@@ -28,37 +39,17 @@ export const sessionsApi = baseApi.injectEndpoints({
   overrideExisting: false,
 });
 
-const dynamicHooks = sessionsApi as any;
-
-const {
+export const {
   useCreateSessionMutation,
-  useReadOneSessionQuery:       useSessionQuery,
-  useLazyReadOneSessionQuery:   useLazySessionQuery,
-  useReadManySessionQuery:      useSessionsBatchQuery,
-  useReadPageSessionQuery:      useSessionsPageQuery,
-  useUpdateOneSessionMutation:  useUpdateSessionMutation,
-  useDeleteOneSessionMutation:  useDeleteSessionMutation,
+  useReadOneSessionQuery: useSessionQuery,
+  useLazyReadOneSessionQuery: useLazySessionQuery,
+  useReadManySessionQuery: useSessionsBatchQuery,
+  useReadPageSessionQuery: useSessionsPageQuery,
+  useUpdateOneSessionMutation: useUpdateSessionMutation,
+  useDeleteOneSessionMutation: useDeleteSessionMutation,
   useDeleteManySessionMutation: useDeleteSessionsBatchMutation,
-} = dynamicHooks;
-
-const {
   useReadSessionByJoinCodeQuery,
   useLazyReadSessionByJoinCodeQuery,
   useJoinSessionMutation,
   useLeaveSessionMutation,
 } = sessionsApi;
-
-export {
-  useCreateSessionMutation,
-  useSessionQuery,
-  useLazySessionQuery,
-  useSessionsBatchQuery,
-  useSessionsPageQuery,
-  useUpdateSessionMutation,
-  useDeleteSessionMutation,
-  useDeleteSessionsBatchMutation,
-  useReadSessionByJoinCodeQuery,
-  useLazyReadSessionByJoinCodeQuery,
-  useJoinSessionMutation,
-  useLeaveSessionMutation,
-};
