@@ -19,7 +19,7 @@ export interface ExtractedBannerProps {
   yColors: string[];
 }
 
-const DEFAULT_X_COLORS = ['#0f5066', '#1a7a9a'];
+const DEFAULT_X_COLORS = ['#E86200', '#1a7a9a'];
 const DEFAULT_Y_COLORS = ['#e2e8f0', '#94a3b8'];
 const DEFAULT_VARIANCE = 0.75;
 const DEFAULT_CELL_SIZE = 60;

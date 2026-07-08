@@ -46,7 +46,7 @@ const validate = (vals: SignUpFormValues): SignUpFormErrors => {
 const toggleBtnStyle: React.CSSProperties = {
   position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
   background: 'none', border: 'none', cursor: 'pointer', padding: '4px',
-  display: 'flex', alignItems: 'center', color: '#64748b', zIndex: 20,
+  display: 'flex', alignItems: 'center', color: '#00E8D6', zIndex: 20,
 };
 
 const SignUp: React.FC = () => {
