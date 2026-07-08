@@ -32,7 +32,7 @@ export const useAvatarForm = ({ profileUser, activeUser }: UseAvatarFormOptions)
     mode: 'gradient',
     shape: 'circle',
     src: '',
-    colors: ['#0f5066, #e2e8f0'],
+    colors: ['#E86200, #e2e8f0'],
     fontColor: '#ffffff',
   });
   

@@ -29,9 +29,9 @@ export const extractAvatarProps = (user: any): ExtractedAvatarProps => ({
 });
 
 export const parseInitialColors = (background: string | undefined): string[] => {
-  if (!background) return ['#0f5066, #e2e8f0'];
+  if (!background) return ['#E86200, #e2e8f0'];
   const hexMatches = background.match(/#[A-Fa-f0-9]{6}|#[A-Fa-f0-9]{3}/g);
-  return hexMatches && hexMatches.length > 0 ? hexMatches : ['#0f5066, #e2e8f0'];
+  return hexMatches && hexMatches.length > 0 ? hexMatches : ['#E86200, #e2e8f0'];
 };
 
 export const compileGradient = (colors: string[]): string => {

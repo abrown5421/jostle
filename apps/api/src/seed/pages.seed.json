@@ -18,7 +18,7 @@
       "isButton": false,
       "resolveNavPath": null
     },
-    "centered": false,
+    "centered": true,
     "is_system_page": true,
     "isActive": true,
     "seedPolicy": "assert"

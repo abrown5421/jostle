@@ -56,8 +56,8 @@ const UserGrowthChart: React.FC = () => {
             <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="userGrowthGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#115e7a" stopOpacity={0.6} />
-                  <stop offset="95%" stopColor="#115e7a" stopOpacity={0.05} />
+                  <stop offset="5%" stopColor="#4004e5" stopOpacity={0.6} />
+                  <stop offset="95%" stopColor="#4004e5" stopOpacity={0.05} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
@@ -69,7 +69,7 @@ const UserGrowthChart: React.FC = () => {
                   name === 'cumulative' ? 'Total Users' : 'New Users',
                 ]}
               />
-              <Area type="monotone" dataKey="cumulative" stroke="#115e7a" fill="url(#userGrowthGradient)" strokeWidth={2} />
+              <Area type="monotone" dataKey="cumulative" stroke="#4004e5" fill="url(#userGrowthGradient)" strokeWidth={2} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
