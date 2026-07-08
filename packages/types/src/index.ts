@@ -9,4 +9,4 @@ export * from './lib/settings/settings.types.js';
 export * from './lib/friend/friend.types.js'
 export * from './lib/connected-accounts/connected-accounts.types.js'
 export * from './lib/integrations/integrations.types.js'
-
+export * from './lib/session/session.types.js'
