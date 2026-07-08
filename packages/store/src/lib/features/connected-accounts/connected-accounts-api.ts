@@ -18,13 +18,19 @@ export const connectedAccountsApi = baseApi.injectEndpoints({
       query: (userId) => `/connected-accounts/user/${userId}`,
       providesTags: (result) =>
         result
-          ? [...result.map(({ _id }) => ({ type: 'User' as const, id: _id })), 'User' as const]
-          : ['User' as const],
+          ? [
+              ...result.map(({ _id }) => ({ type: 'ConnectedAccount' as const, id: _id })),
+              { type: 'ConnectedAccount' as const, id: 'LIST' }
+            ]
+          : [{ type: 'ConnectedAccount' as const, id: 'LIST' }],
     }),
 
     readConnectionByProvider: builder.query<ConnectedAccount, { userId: string; provider: string }>({
       query: ({ userId, provider }) => `/connected-accounts/user/${userId}/provider/${provider}`,
-      providesTags: (result) => (result ? [{ type: 'User' as const, id: result._id }] : ['User' as const]),
+      providesTags: (result) => 
+        result 
+          ? [{ type: 'ConnectedAccount' as const, id: result._id }] 
+          : [{ type: 'ConnectedAccount' as const, id: 'LIST' }],
     }),
   }),
   overrideExisting: false,

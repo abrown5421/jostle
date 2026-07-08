@@ -8,45 +8,45 @@
   },
   {
     "key": "profile-info-address",
-    "value": true,
+    "value": false,
     "description": "",
     "is_public": false,
-    "seedPolicy": "assert"
+    "seedPolicy": "once"
   },
   {
     "key": "profile-info-phone",
-    "value": true,
+    "value": false,
     "description": "",
     "is_public": false,
-    "seedPolicy": "assert"
+    "seedPolicy": "once"
   },
   {
     "key": "profile-info-dob",
     "value": true,
     "description": "",
     "is_public": false,
-    "seedPolicy": "assert"
+    "seedPolicy": "once"
   },
   {
     "key": "profile-info-gender",
     "value": true,
     "description": "",
     "is_public": false,
-    "seedPolicy": "assert"
+    "seedPolicy": "once"
   },
   {
     "key": "profile-info-bio",
     "value": true,
     "description": "",
     "is_public": false,
-    "seedPolicy": "assert"
+    "seedPolicy": "once"
   },
   {
     "key": "profile-info-dark-mode",
-    "value": true,
+    "value": false,
     "description": "",
     "is_public": false,
-    "seedPolicy": "assert"
+    "seedPolicy": "once"
   },
   {
     "key": "primary-font-asset",
@@ -61,5 +61,12 @@
     "description": "",
     "is_public": false,
     "seedPolicy": "assert"
+  },
+  {
+    "key": "friend-module",
+    "value": true,
+    "description": "",
+    "is_public": false,
+    "seedPolicy": "once"
   }
 ]
