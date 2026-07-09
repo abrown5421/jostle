@@ -26,6 +26,7 @@ import {
   SystemErrorModel,
   connectedAccountsRouter,
   ConnectedAccountModel,
+  gamesRouter,
 } from '@inithium/api-collections';
 import { createAssetManager } from '@inithium/asset-manager';
 import {
@@ -201,6 +202,7 @@ app.use('/api/friends', friendsRouter);
 app.use('/api/system-errors', systemErrorsRouter);
 app.use('/api/connected-accounts', connectedAccountsRouter);
 app.use('/api/media-services', mediaIntegrationsRouter);
+app.use('/api/games', gamesRouter);
 
 app.get('/', (_req, res) => {
   res.send({ message: 'Inithium API' });
