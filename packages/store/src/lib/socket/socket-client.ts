@@ -12,8 +12,12 @@ const getApiOrigin = (): string => {
 export const connectSocket = (): Socket => {
   if (socket) return socket;
   socket = io(getApiOrigin(), { withCredentials: true });
+  socket.on('connect_error', (err) => {
+    console.error('[socket] connection failed:', err.message);
+  });
   return socket;
 };
+
 
 export const disconnectSocket = (): void => {
   socket?.disconnect();

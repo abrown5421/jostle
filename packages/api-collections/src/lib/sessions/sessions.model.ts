@@ -85,7 +85,7 @@ const sessionSchema = new Schema<Session>(
   {
     lobbyId: { type: String, required: true, unique: true, uppercase: true, trim: true },
     hostId: { type: String, required: true },
-    config: { type: sessionConfigSnapshotSchema, required: true },
+    config: { type: sessionConfigSnapshotSchema, required: false, default: null },
     players: { type: [sessionPlayerSchema], default: [] },
     teams: { type: [sessionTeamSchema], default: [] },
     playerScores: { type: [playerScoreSchema], default: [] },

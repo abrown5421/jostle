@@ -55,7 +55,7 @@ export interface Session<TGameState extends BaseGameState = BaseGameState> {
   _id: string;
   lobbyId: string;
   hostId: string;
-  config: SessionConfigSnapshot;
+  config: SessionConfigSnapshot | null;
   players: SessionPlayer[];
   teams: SessionTeam[];
   playerScores: PlayerScore[];

@@ -1,4 +1,4 @@
-import type { Session } from '@inithium/types';
+import type { Session, SessionPlayer } from '@inithium/types';
 import type { PaginatedResult, PaginationQuery } from '@inithium/api-core';
 import { createCrudEndpoints } from '../../base/crud-api-factory.js';
 import { baseApi } from '../../base/base-api.js';
@@ -23,6 +23,22 @@ export const sessionsApi = baseApi.injectEndpoints({
       query: (hostId) => ({ url: `/sessions/active/host/${hostId}` }),
       providesTags: ['Session'],
     }),
+    hostSession: builder.mutation<Session, { lobbyId: string }>({
+      query: (body) => ({ url: '/sessions/host', method: 'POST', body }),
+      invalidatesTags: ['Session'],
+    }),
+    joinSession: builder.mutation<{ session: Session; player: SessionPlayer }, { lobbyId: string; displayName: string }>({
+      query: ({ lobbyId, ...body }) => ({ url: `/sessions/lobby/${lobbyId}/join`, method: 'POST', body }),
+      invalidatesTags: ['Session'],
+    }),
+    kickPlayer: builder.mutation<Session, { sessionId: string; playerId: string; hostId: string }>({
+      query: ({ sessionId, playerId, hostId }) => ({
+        url: `/sessions/${sessionId}/kick/${playerId}`,
+        method: 'POST',
+        body: { hostId },
+      }),
+      invalidatesTags: ['Session'],
+    }),
   }),
   overrideExisting: false,
 });
@@ -40,7 +56,14 @@ const {
   useDeleteManySessionMutation:   useDeleteSessionsBatchMutation,
 } = dynamicHooks;
 
-const { useReadAllSessionsQuery, useReadSessionByLobbyIdQuery, useReadActiveSessionsByHostQuery } = sessionsApi;
+const {
+  useReadAllSessionsQuery,
+  useReadSessionByLobbyIdQuery,
+  useReadActiveSessionsByHostQuery,
+  useHostSessionMutation,
+  useJoinSessionMutation,
+  useKickPlayerMutation,
+} = sessionsApi;
 
 export {
   useCreateSessionMutation,
@@ -54,4 +77,7 @@ export {
   useReadAllSessionsQuery,
   useReadSessionByLobbyIdQuery,
   useReadActiveSessionsByHostQuery,
+  useHostSessionMutation,
+  useJoinSessionMutation,
+  useKickPlayerMutation,
 };

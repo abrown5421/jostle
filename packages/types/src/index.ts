@@ -11,4 +11,5 @@ export * from './lib/game/game.types.js'
 export * from './lib/connected-accounts/connected-accounts.types.js'
 export * from './lib/integrations/integrations.types.js'
 export * from './lib/sessions/sessions.types.js'
+export * from './lib/sessions/session-channels.js'
 

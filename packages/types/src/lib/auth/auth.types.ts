@@ -2,8 +2,9 @@ import type { User } from '../user/user.types.js';
 
 export interface AccessTokenPayload {
   sub: string;
-  email: string;
-  role: User['role'];
+  email?: string;
+  role: User['role'] | 'guest';
+  lobbyId?: string;
   iat?: number;
   exp?: number;
 }
