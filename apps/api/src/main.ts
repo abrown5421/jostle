@@ -27,6 +27,9 @@ import {
   connectedAccountsRouter,
   ConnectedAccountModel,
   gamesRouter,
+  sessionsRouter,
+  setSessionsPubSub,
+  canJoinSessionChannel,
 } from '@inithium/api-collections';
 import { createAssetManager } from '@inithium/asset-manager';
 import {
@@ -203,6 +206,7 @@ app.use('/api/system-errors', systemErrorsRouter);
 app.use('/api/connected-accounts', connectedAccountsRouter);
 app.use('/api/media-services', mediaIntegrationsRouter);
 app.use('/api/games', gamesRouter);
+app.use('/api/sessions', sessionsRouter);
 
 app.get('/', (_req, res) => {
   res.send({ message: 'Inithium API' });
@@ -242,6 +246,7 @@ async function bootstrap() {
 
   const pubsub = createPubSub(createDefaultAdapter());
   setFriendsPubSub(pubsub);
+  setSessionsPubSub(pubsub);
 
   const presenceTracker = createPresenceTracker({
     awayTimeoutMs: AWAY_TIMEOUT_MS,
@@ -264,7 +269,9 @@ async function bootstrap() {
   });
 
   const canJoinChannel = async (user: AccessTokenPayload, channel: string): Promise<boolean> =>
-    channel.startsWith(`user:${user.sub}`) || channel.startsWith(`${PRESENCE_DOMAIN}:`);
+    channel.startsWith(`user:${user.sub}`) ||
+    channel.startsWith(`${PRESENCE_DOMAIN}:`) ||
+    (channel.startsWith('session:') && (await canJoinSessionChannel(user, channel)));
 
   createSocketServer({
     httpServer,

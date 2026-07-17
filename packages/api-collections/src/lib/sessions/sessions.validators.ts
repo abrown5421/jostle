@@ -58,14 +58,14 @@ const SessionConfigSnapshotSchema = z.object({
 });
 
 const BaseGameStateSchema = z.object({
-  game: z.string().min(1),
+  game: z.string(),
   phase: z.string().min(1),
 }).catchall(z.unknown());
 
 export const CreateSessionSchema = z.object({
   lobbyId: z.string().min(1),
   hostId: z.string().min(1),
-  config: SessionConfigSnapshotSchema,
+  config: SessionConfigSnapshotSchema.nullable().default(null),
   players: z.array(SessionPlayerSchema).default([]),
   teams: z.array(SessionTeamSchema).default([]),
   playerScores: z.array(PlayerScoreSchema).default([]),
@@ -80,5 +80,20 @@ export const CreateSessionSchema = z.object({
 
 export const UpdateSessionSchema = CreateSessionSchema.partial();
 
+export const HostSessionSchema = z.object({
+  lobbyId: z.string().min(1),
+});
+
+export const JoinSessionSchema = z.object({
+  displayName: z.string().min(1),
+});
+
+export const KickPlayerSchema = z.object({
+  hostId: z.string().min(1),
+});
+
 export type CreateSessionDto = z.infer<typeof CreateSessionSchema>;
 export type UpdateSessionDto = z.infer<typeof UpdateSessionSchema>;
+export type HostSessionDto = z.infer<typeof HostSessionSchema>;
+export type JoinSessionDto = z.infer<typeof JoinSessionSchema>;
+export type KickPlayerDto = z.infer<typeof KickPlayerSchema>;

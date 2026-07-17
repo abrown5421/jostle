@@ -5,3 +5,9 @@ export * from './lib/privacy-policy/index';
 export * from './lib/profile/index'
 
 export * from './lib/games-page/index';
+
+export * from './lib/host-page/index';
+
+export * from './lib/join-page/index';
+
+export * from './lib/lobby-page/index';
