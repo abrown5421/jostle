@@ -8,4 +8,5 @@ export * from './button/index.js';
 export * from './input/index.js';
 export * from './select/index.js';
 export * from './switch/index.js';
+export * from './slider/index.js';
 
