@@ -15,6 +15,18 @@
   --color-secondary: var(--palette-violet);
   --color-accent: var(--palette-cyan);
 
+  /*
+   * Text color for content sitting ON TOP of a brand color (e.g. Button's
+   * contained variant). Chosen by WCAG contrast against the actual palette
+   * values, not by convention — orange and cyan are light/mid enough that
+   * white text fails contrast (~2.6:1 and ~1.6:1), so they pair with the
+   * dark surface tone (~6.7:1 and ~10.9:1) instead; violet is dark enough
+   * that only the light content tone clears AA (~6.5:1 vs ~2.7:1).
+   */
+  --color-primary-foreground: var(--palette-navy-1);
+  --color-secondary-foreground: var(--palette-ice-1);
+  --color-accent-foreground: var(--palette-navy-1);
+
   --color-surface-primary: var(--palette-navy-1);
   --color-surface-secondary: var(--palette-navy-2);
   --color-surface-tertiary: var(--palette-navy-3);
