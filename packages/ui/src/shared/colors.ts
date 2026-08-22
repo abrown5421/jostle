@@ -51,6 +51,13 @@ export const FOREGROUND_TEXT_CLASS: Record<BrandColor, string> = {
   accent: 'text-accent-foreground',
 };
 
+/** Focus-ring color, used by form controls (Input, Select). */
+export const FOCUS_RING_CLASS: Record<BrandColor, string> = {
+  primary: 'focus:ring-primary',
+  secondary: 'focus:ring-secondary',
+  accent: 'focus:ring-accent',
+};
+
 export const BORDER_CLASS: Record<ThemeColor, string> = {
   primary: 'border-primary',
   secondary: 'border-secondary',
