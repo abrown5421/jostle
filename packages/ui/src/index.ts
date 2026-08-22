@@ -5,4 +5,5 @@ export * from './shared/index.js';
 export * from './container/index.js';
 export * from './text/index.js';
 export * from './button/index.js';
+export * from './input/index.js';
 
