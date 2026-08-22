@@ -5,13 +5,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useAnimationTrigger } from './useAnimationTrigger.js';
 import { useEnterExitAnimation } from './useEnterExitAnimation.js';
 
-// Deterministic: run the deferred "drop to idle for a frame" step synchronously
-// instead of waiting on a real animation frame.
-vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
-  callback(0);
-  return 0;
-});
-
 function TriggerFixture({
   onReady,
 }: {
