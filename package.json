@@ -5,6 +5,7 @@
   "scripts": {},
   "private": true,
   "devDependencies": {
+    "@nx/esbuild": "^23.1.1",
     "@nx/express": "^23.1.1",
     "@nx/js": "23.1.1",
     "@nx/node": "23.1.1",
@@ -19,6 +20,7 @@
     "@swc/helpers": "0.5.18",
     "@types/express": "^5.0.0",
     "@types/node": "^24.0.0",
+    "esbuild": "^0.27.0",
     "jiti": "2.4.2",
     "nx": "23.1.1",
     "prettier": "^3.8.1",
