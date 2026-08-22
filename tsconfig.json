@@ -5,6 +5,12 @@
   "references": [
     {
       "path": "./packages/ui"
+    },
+    {
+      "path": "./apps/api"
+    },
+    {
+      "path": "./packages/db"
     }
   ],
   "compilerOptions": {}
