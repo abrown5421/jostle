@@ -1,0 +1,15 @@
+{
+  "name": "@jostle/web",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "@jostle/router": "*",
+    "@jostle/ui": "*",
+    "react-router": "^8.3.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@vitejs/plugin-react": "^5.2.0",
+    "vitest": "~3.2.7"
+  }
+}

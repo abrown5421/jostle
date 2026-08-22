@@ -1,0 +1,16 @@
+@import '@jostle/ui/styles.css';
+
+/* Tailwind's scanner only walks this app's own source tree by default;
+   point it at packages/ui too since that's where component class names
+   like bg-primary/flex/gap-4 actually appear in source. */
+@source '../../../packages/ui/src';
+
+body {
+  @apply bg-surface-primary text-content-primary;
+  margin: 0;
+  min-height: 100vh;
+}
+
+a {
+  @apply text-primary;
+}

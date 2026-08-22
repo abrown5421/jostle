@@ -11,6 +11,12 @@
     },
     {
       "path": "./packages/db"
+    },
+    {
+      "path": "./apps/web"
+    },
+    {
+      "path": "./packages/router"
     }
   ],
   "compilerOptions": {}
