@@ -1,0 +1,7 @@
+/*
+ * animate.css provides the `animate__animated animate__<name>` class pairs
+ * consumed by the animation hooks in src/animation. Per-instance timing is
+ * customized via its --animate-duration / --animate-delay / --animate-repeat
+ * custom properties rather than editing this file.
+ */
+@import 'animate.css/animate.css';

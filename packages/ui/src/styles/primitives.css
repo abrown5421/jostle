@@ -1,0 +1,19 @@
+/*
+ * Raw palette values. These are not meant to be used directly in markup —
+ * they exist so theme.css has a single place to point semantic tokens at.
+ * Rename or swap a brand color by editing a value here; the semantic names
+ * consumers actually use (see theme.css) never change.
+ */
+:root {
+  --palette-orange: #fd6b00;
+  --palette-violet: #6609f6;
+  --palette-cyan: #02d7e0;
+
+  --palette-navy-1: #06082d;
+  --palette-navy-2: #070b4f;
+  --palette-navy-3: #080f72;
+
+  --palette-ice-1: #f2f3fc;
+  --palette-ice-2: #dcddef;
+  --palette-ice-3: #c3c5dd;
+}

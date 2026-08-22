@@ -1,0 +1,25 @@
+@import 'tailwindcss';
+@import './primitives.css';
+
+/*
+ * Semantic design tokens. Each variable maps a raw palette value
+ * (primitives.css) to its semantic intent. Declaring them inside Tailwind
+ * v4's @theme registers them as first-class utilities alongside the core
+ * palette — e.g. --color-surface-primary produces bg-surface-primary,
+ * text-surface-primary, border-surface-primary, etc. @theme only adds to
+ * Tailwind's default palette here, so core utilities (emerald-400,
+ * amber-700, slate-950/30, ...) keep working unchanged.
+ */
+@theme {
+  --color-primary: var(--palette-orange);
+  --color-secondary: var(--palette-violet);
+  --color-accent: var(--palette-cyan);
+
+  --color-surface-primary: var(--palette-navy-1);
+  --color-surface-secondary: var(--palette-navy-2);
+  --color-surface-tertiary: var(--palette-navy-3);
+
+  --color-content-primary: var(--palette-ice-1);
+  --color-content-secondary: var(--palette-ice-2);
+  --color-content-tertiary: var(--palette-ice-3);
+}

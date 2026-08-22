@@ -1,0 +1,7 @@
+/*
+ * Main CSS bundle for @jostle/ui — import this one file to get the design
+ * token layer and the animation primitives. theme.css and animations.css
+ * remain independently importable for consumers that only need one half.
+ */
+@import './theme.css';
+@import './animations.css';
