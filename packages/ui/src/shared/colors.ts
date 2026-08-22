@@ -44,6 +44,13 @@ export const TEXT_CLASS: Record<ThemeColor, string> = {
   'content-tertiary': 'text-content-tertiary',
 };
 
+/** Text color for content sitting on top of a solid brand-color background. */
+export const FOREGROUND_TEXT_CLASS: Record<BrandColor, string> = {
+  primary: 'text-primary-foreground',
+  secondary: 'text-secondary-foreground',
+  accent: 'text-accent-foreground',
+};
+
 export const BORDER_CLASS: Record<ThemeColor, string> = {
   primary: 'border-primary',
   secondary: 'border-secondary',

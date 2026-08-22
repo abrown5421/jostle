@@ -4,4 +4,5 @@ export * from './animation/index.js';
 export * from './shared/index.js';
 export * from './container/index.js';
 export * from './text/index.js';
+export * from './button/index.js';
 
