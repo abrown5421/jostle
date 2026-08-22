@@ -1,11 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { AnimationCSSVariables, AnimationConfig, AnimationHookResult } from './types.js';
-
-const toCssVariables = (config: AnimationConfig): AnimationCSSVariables => ({
-  ...(config.duration != null && { '--animate-duration': `${config.duration}ms` }),
-  ...(config.delay != null && { '--animate-delay': `${config.delay}ms` }),
-  ...(config.repeat != null && { '--animate-repeat': String(config.repeat) }),
-});
+import { animationClassName, animationStyle } from './class-names.js';
+import type { AnimationConfig, AnimationHookResult } from './types.js';
 
 /**
  * Imperative animation primitive: attach `ref` + spread `className`/`style`
@@ -47,8 +42,8 @@ export function useAnimationTrigger(): AnimationHookResult {
 
   return {
     ref,
-    className: active ? `animate__animated animate__${active.name}` : '',
-    style: active ? toCssVariables(active) : {},
+    className: animationClassName(active ?? undefined),
+    style: animationStyle(active ?? undefined),
     isAnimating: active !== null,
     play,
     reset,

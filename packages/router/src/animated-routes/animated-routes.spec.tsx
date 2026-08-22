@@ -85,6 +85,45 @@ describe('AnimatedRoutes', () => {
     expect(wrapper().className).toBe('animate__animated animate__fadeInUp');
   });
 
+  it('never commits the new page without its enter class already applied (no unanimated flash)', () => {
+    // A regression test for the exact bug: the final settled className
+    // after act() flushes everything looks right either way, because the
+    // buggy version's extra commit (className briefly '', new content
+    // already swapped in) happens in a synchronous chain that's invisible
+    // to act()-flushed assertions in this test environment (real browsers
+    // paint the intermediate frame; jsdom + our synchronous rAF stub
+    // don't yield between them). A MutationObserver sees every individual
+    // class-attribute commit, in order, regardless of how fast they
+    // happen — that's what actually catches the flash.
+    act(() => root.render(<Fixture initialPath="/" />));
+    const wrapper = () => container.querySelector('[data-testid="page"]')!.parentElement as HTMLElement;
+    act(() => fireAnimationEnd(wrapper()));
+
+    const observer = new MutationObserver(() => {});
+    observer.observe(wrapper(), { attributes: true, attributeFilter: ['class'], attributeOldValue: true });
+
+    act(() => container.querySelector('[data-testid="nav"]')!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    act(() => fireAnimationEnd(wrapper()));
+
+    // MutationRecord.target always reflects the LIVE current value, not a
+    // per-record snapshot — the sequence actually visited has to be
+    // reconstructed from each record's oldValue (the state right before
+    // that mutation) plus the final live value.
+    const records = observer.takeRecords();
+    observer.disconnect();
+    const visited = [...records.map((record) => record.oldValue), wrapper().className];
+
+    // Exactly two transitions: idle -> exiting, exiting -> entering. If the
+    // old (buggy) implementation were in place there'd be a third,
+    // "exiting -> '' -> entering", from the content swap landing without
+    // its enter class for a commit.
+    expect(visited).toEqual([
+      '',
+      'animate__animated animate__fadeOut',
+      'animate__animated animate__fadeInUp',
+    ]);
+  });
+
   it('renders nothing for a path that matches no route', () => {
     act(() => root.render(<Fixture initialPath="/nowhere" />));
     expect(container.querySelector('[data-testid="page"]')).toBeNull();
