@@ -1,3 +1,4 @@
+import { images } from '@jostle/assets';
 import { AnimatedRoutes } from '@jostle/router';
 import { Navbar } from '@jostle/ui';
 import type { UserProfile } from '@jostle/ui';
@@ -18,7 +19,7 @@ function AppShell() {
   return (
     <>
       <Navbar
-        logoSrc="/favicon.ico"
+        logoSrc={images.logo}
         appName="Jostle"
         navLinks={NAV_LINKS}
         profileLinks={[{ label: 'Profile', href: `/profile/${MOCK_USER.id}` }]}

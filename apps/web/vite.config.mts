@@ -5,6 +5,10 @@ import { defineConfig, type PluginOption } from 'vite';
 export default defineConfig({
   root: import.meta.dirname,
   cacheDir: '../../node_modules/.vite/apps/web',
+  // @jostle/assets/public is the single source of truth for static
+  // assets — pointing publicDir there instead of a local apps/web/public
+  // means there's no copy step and no second place files could live.
+  publicDir: '../../packages/assets/public',
   server: {
     port: 5173,
     host: 'localhost',

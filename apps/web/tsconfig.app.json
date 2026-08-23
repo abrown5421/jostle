@@ -35,6 +35,9 @@
     },
     {
       "path": "../../packages/router/tsconfig.lib.json"
+    },
+    {
+      "path": "../../packages/assets/tsconfig.lib.json"
     }
   ]
 }
