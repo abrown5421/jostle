@@ -1,8 +1,20 @@
 import { checkDatabaseHealth, closeClient } from '@jostle/db';
+import cookieParser from 'cookie-parser';
+import cors from 'cors';
 import express from 'express';
 import * as path from 'path';
+import { authRouter } from './routes/auth.js';
 
 const app = express();
+
+// In dev, apps/web's Vite server proxies /api to this process, so the
+// browser sees everything as same-origin and CORS never applies. This
+// only matters when the API is actually hit cross-origin — e.g.
+// production, if web and api end up on different hosts.
+const webOrigin = process.env.WEB_ORIGIN || 'http://localhost:5173';
+app.use(cors({ origin: webOrigin, credentials: true }));
+app.use(express.json());
+app.use(cookieParser());
 
 app.use('/assets', express.static(path.join(import.meta.dirname, 'assets')));
 
@@ -15,6 +27,8 @@ app.get('/health', async (req, res) => {
   const status = database.connected ? 'healthy' : 'unhealthy';
   res.status(database.connected ? 200 : 503).send({ status, database });
 });
+
+app.use('/auth', authRouter);
 
 const port = process.env.PORT || 3333;
 const server = app.listen(port, () => {

@@ -2,19 +2,25 @@ import { fonts, images } from '@jostle/assets';
 import { AnimatedRoutes } from '@jostle/router';
 import { Navbar } from '@jostle/ui';
 import type { UserProfile } from '@jostle/ui';
-import { useState } from 'react';
 import { BrowserRouter, useNavigate } from 'react-router';
+import { AuthProvider, useAuth } from '../auth/index.js';
 import { routes } from './routes.js';
 
 const NAV_LINKS = [{ label: 'Home', href: '/' }];
 
-// Placeholder until real auth exists — lets onLogin/onLogout actually
-// exercise all four rows of the Navbar's viewport x auth-state matrix.
-const MOCK_USER: UserProfile = { id: '1', name: 'Jamie Doe' };
+function toProfile(user: { id: string; firstName: string; lastName?: string }): UserProfile {
+  return { id: user.id, name: [user.firstName, user.lastName].filter(Boolean).join(' ') };
+}
 
 function AppShell() {
   const navigate = useNavigate();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { user, isAuthenticated, isLoading, logout } = useAuth();
+
+  // Avoid flashing the logged-out navbar while the initial /auth/me check
+  // is still in flight — same content either way, just not painted yet.
+  if (isLoading) return null;
+
+  const profile = user ? toProfile(user) : undefined;
 
   return (
     <>
@@ -23,11 +29,14 @@ function AppShell() {
         appName="Jostle"
         appNameFontFamily={fonts.primary}
         navLinks={NAV_LINKS}
-        profileLinks={[{ label: 'Profile', href: `/profile/${MOCK_USER.id}` }]}
+        profileLinks={profile ? [{ label: 'Profile', href: `/profile/${profile.id}` }] : []}
         isAuthenticated={isAuthenticated}
-        user={MOCK_USER}
-        onLogin={() => setIsAuthenticated(true)}
-        onLogout={() => setIsAuthenticated(false)}
+        user={profile}
+        onLogin={() => navigate('/login')}
+        onLogout={async () => {
+          await logout();
+          navigate('/');
+        }}
         onNavigate={navigate}
       />
       <AnimatedRoutes routes={routes} />
@@ -38,7 +47,9 @@ function AppShell() {
 export function App() {
   return (
     <BrowserRouter>
-      <AppShell />
+      <AuthProvider>
+        <AppShell />
+      </AuthProvider>
     </BrowserRouter>
   );
 }
