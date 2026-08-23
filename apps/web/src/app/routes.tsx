@@ -1,5 +1,5 @@
 import type { PageRoute } from '@jostle/router';
-import { HomePage, LoginPage, SignupPage } from '../pages/index.js';
+import { HomePage, LoginPage, ProfilePage, SignupPage } from '../pages/index.js';
 
 // Each route owns its own enter/exit pair, deliberately varied to show the
 // transition framework isn't tied to one effect.
@@ -26,6 +26,14 @@ export const routes: PageRoute[] = [
     transition: {
       enter: { name: 'zoomIn', duration: 400 },
       exit: { name: 'zoomOut', duration: 300 },
+    },
+  },
+  {
+    path: '/profile/:id',
+    element: <ProfilePage />,
+    transition: {
+      enter: { name: 'slideInRight', duration: 400 },
+      exit: { name: 'slideOutRight', duration: 300 },
     },
   },
 ];

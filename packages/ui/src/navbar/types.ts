@@ -1,0 +1,43 @@
+import type { Ref } from 'react';
+import type { AnimationConfig } from '../animation/index.js';
+import type { AnimatableProps, BlowoffProps } from '../shared/index.js';
+
+export interface NavLinkItem {
+  label: string;
+  href: string;
+}
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  avatarUrl?: string;
+}
+
+export interface DrawerTransitionConfig {
+  enter: AnimationConfig;
+  exit: AnimationConfig;
+}
+
+export interface NavbarProps extends BlowoffProps, AnimatableProps {
+  logoSrc: string;
+  logoAlt?: string;
+  appName: string;
+  /** Primary site links — desktop-visible at lg, drawer-only below it. */
+  navLinks: NavLinkItem[];
+  /** Links shown in the drawer only while authenticated (e.g. Profile). */
+  profileLinks: NavLinkItem[];
+  isAuthenticated: boolean;
+  /** Required once isAuthenticated is true — drives the avatar + greeting. */
+  user?: UserProfile;
+  onLogin: () => void;
+  onLogout: () => void;
+  /**
+   * Called instead of a real navigation when a link is clicked (wire this
+   * to your router's navigate function for SPA routing). If omitted, links
+   * are plain <a href> and navigate normally.
+   */
+  onNavigate?: (href: string) => void;
+  /** @default slideInRight / slideOutRight */
+  drawerTransition?: DrawerTransitionConfig;
+  ref?: Ref<HTMLElement>;
+}
