@@ -1,5 +1,4 @@
 import { Container, Text } from '@jostle/ui';
-import { Link } from 'react-router';
 
 export function HomePage() {
   return (
@@ -7,10 +6,6 @@ export function HomePage() {
       <Text fontSize="3xl" fontWeight="bold" textColor="content-primary">
         Home
       </Text>
-      <Container gap={4}>
-        <Link to="/login">Login</Link>
-        <Link to="/signup">Sign up</Link>
-      </Container>
     </Container>
   );
 }
