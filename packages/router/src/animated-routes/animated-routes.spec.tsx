@@ -1,9 +1,14 @@
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import { MemoryRouter, useNavigate } from 'react-router';
+import { MemoryRouter, useNavigate, useParams } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { AnimatedRoutes } from './animated-routes.js';
 import type { PageRoute } from './types.js';
+
+function ProfilePage() {
+  const { id } = useParams();
+  return <div data-testid="page">profile-{id}</div>;
+}
 
 const routes: PageRoute[] = [
   {
@@ -15,6 +20,11 @@ const routes: PageRoute[] = [
     path: '/login',
     element: <div data-testid="page">login</div>,
     transition: { enter: { name: 'fadeInUp' }, exit: { name: 'fadeOutDown' } },
+  },
+  {
+    path: '/profile/:id',
+    element: <ProfilePage />,
+    transition: { enter: { name: 'fadeIn' }, exit: { name: 'fadeOut' } },
   },
 ];
 
@@ -127,5 +137,15 @@ describe('AnimatedRoutes', () => {
   it('renders nothing for a path that matches no route', () => {
     act(() => root.render(<Fixture initialPath="/nowhere" />));
     expect(container.querySelector('[data-testid="page"]')).toBeNull();
+  });
+
+  it('resolves dynamic segments via real react-router context (useParams works)', () => {
+    // Regression test: rendering a matched route's element directly
+    // (instead of through <Routes location>) never establishes
+    // react-router's own route context, so useParams() would silently
+    // return {} instead of the actual param.
+    act(() => root.render(<Fixture initialPath="/profile/42" />));
+    const wrapper = container.querySelector('[data-testid="page"]')!.parentElement as HTMLElement;
+    expect(wrapper.textContent).toBe('profile-42');
   });
 });

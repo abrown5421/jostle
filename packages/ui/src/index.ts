@@ -9,4 +9,5 @@ export * from './input/index.js';
 export * from './select/index.js';
 export * from './switch/index.js';
 export * from './slider/index.js';
+export * from './navbar/index.js';
 
