@@ -5,8 +5,16 @@ import type { AnimatableProps, BlowoffProps, BrandColor } from '../shared/index.
 
 export type ButtonVariant = 'contained' | 'outlined' | 'ghost' | 'link';
 
-const BASE_CLASS =
-  'inline-flex items-center justify-center rounded-md px-4 py-2 font-medium disabled:cursor-not-allowed disabled:opacity-60';
+const BASE_CLASS = 'inline-flex items-center justify-center font-medium disabled:cursor-not-allowed disabled:opacity-60';
+
+// link reads as inline text, not a button — no padding/rounding to fake a
+// hit target the way the other three (real, boxed) variants need.
+const VARIANT_SHAPE_CLASS: Record<ButtonVariant, string> = {
+  contained: 'rounded-md px-4 py-2',
+  outlined: 'rounded-md px-4 py-2',
+  ghost: 'rounded-md px-4 py-2',
+  link: '',
+};
 
 // Every class name has to appear literally for Tailwind's scanner to pick
 // it up — `bg-${color}` built at render time is invisible to it — so each
@@ -74,7 +82,13 @@ export function Button({
       ref={mergeRefs(ref, animationProp.ref as Ref<HTMLButtonElement>)}
       type={type}
       disabled={disabled}
-      className={cn(BASE_CLASS, VARIANT_COLOR_CLASS[variant][color], animationProp.className, className)}
+      className={cn(
+        BASE_CLASS,
+        VARIANT_SHAPE_CLASS[variant],
+        VARIANT_COLOR_CLASS[variant][color],
+        animationProp.className,
+        className,
+      )}
       style={{ ...animationProp.style, ...style }}
       {...rest}
     >

@@ -61,7 +61,7 @@ export function LoginPage() {
             label="Password"
             value={password}
             setValue={setPassword}
-            color="secondary"
+            color="accent"
             autoComplete="current-password"
             required
           />

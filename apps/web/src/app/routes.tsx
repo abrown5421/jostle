@@ -16,8 +16,8 @@ export const routes: PageRoute[] = [
     path: '/login',
     element: <LoginPage />,
     transition: {
-      enter: { name: 'fadeInUp', duration: 400 },
-      exit: { name: 'fadeOutDown', duration: 300 },
+      enter: { name: 'zoomIn', duration: 400 },
+      exit: { name: 'zoomOut', duration: 300 },
     },
   },
   {
