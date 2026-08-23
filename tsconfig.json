@@ -20,6 +20,9 @@
     },
     {
       "path": "./packages/assets"
+    },
+    {
+      "path": "./packages/auth"
     }
   ],
   "compilerOptions": {}

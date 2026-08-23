@@ -1,5 +1,5 @@
 import { useId } from 'react';
-import type { ComponentPropsWithoutRef, Ref } from 'react';
+import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react';
 import { Container } from '../container/index.js';
 import { cn, FOCUS_RING_CLASS } from '../shared/index.js';
 import type { AnimatableProps, BlowoffProps, BrandColor } from '../shared/index.js';
@@ -18,6 +18,8 @@ export interface InputProps
   /** Focus-ring color. @default 'primary' */
   color?: BrandColor;
   label?: string;
+  /** Rendered inside the input's right edge — e.g. a password-visibility toggle. */
+  trailingElement?: ReactNode;
   ref?: Ref<HTMLInputElement>;
 }
 
@@ -26,6 +28,7 @@ export function Input({
   setValue,
   color = 'primary',
   label,
+  trailingElement,
   animation,
   className,
   style,
@@ -43,14 +46,17 @@ export function Input({
           {label}
         </label>
       )}
-      <input
-        ref={ref}
-        id={inputId}
-        value={value}
-        onChange={(event) => setValue(event.target.value)}
-        className={cn(BASE_INPUT_CLASS, FOCUS_RING_CLASS[color])}
-        {...rest}
-      />
+      <div className="relative flex items-center">
+        <input
+          ref={ref}
+          id={inputId}
+          value={value}
+          onChange={(event) => setValue(event.target.value)}
+          className={cn(BASE_INPUT_CLASS, trailingElement && 'pr-10', FOCUS_RING_CLASS[color])}
+          {...rest}
+        />
+        {trailingElement && <div className="absolute inset-y-0 right-0 flex items-center pr-3">{trailingElement}</div>}
+      </div>
     </Container>
   );
 }
