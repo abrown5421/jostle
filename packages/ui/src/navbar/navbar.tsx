@@ -61,6 +61,7 @@ export function Navbar({
   logoSrc,
   logoAlt,
   appName,
+  appNameFontFamily,
   navLinks,
   profileLinks,
   isAuthenticated,
@@ -105,8 +106,13 @@ export function Navbar({
       style={{ ...animationProp.style, ...style }}
     >
       <div className="flex items-center gap-2">
-        <img src={logoSrc} alt={logoAlt ?? appName} className="h-8 w-8" />
-        <span className="text-lg font-bold text-content-primary">{appName}</span>
+        <img src={logoSrc} alt={logoAlt ?? appName} className="h-8 w-8 object-contain" />
+        <span
+          className="text-lg font-bold text-content-primary"
+          style={appNameFontFamily ? { fontFamily: appNameFontFamily } : undefined}
+        >
+          {appName}
+        </span>
       </div>
 
       <div className="flex items-center gap-6">
