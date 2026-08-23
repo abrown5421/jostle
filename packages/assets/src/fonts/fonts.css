@@ -1,0 +1,14 @@
+/*
+ * Self-hosted @font-face declarations go here. Add the font files to
+ * public/fonts/, declare each weight/style below, then register a name
+ * in ./index.ts so consumers reference a typed key instead of a raw
+ * font-family string. Example, once a real font exists:
+ *
+ * @font-face {
+ *   font-family: 'Inter';
+ *   src: url('/fonts/inter-regular.woff2') format('woff2');
+ *   font-weight: 400;
+ *   font-style: normal;
+ *   font-display: swap;
+ * }
+ */

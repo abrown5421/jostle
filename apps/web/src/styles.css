@@ -1,4 +1,5 @@
 @import '@jostle/ui/styles.css';
+@import '@jostle/assets/fonts.css';
 
 /* Tailwind's scanner only walks this app's own source tree by default;
    point it at packages/ui too since that's where component class names
