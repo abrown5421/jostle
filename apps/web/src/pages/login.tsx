@@ -1,3 +1,4 @@
+import { fonts } from '@jostle/assets';
 import { Button, Container, Input, PasswordInput, Text } from '@jostle/ui';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
@@ -36,13 +37,34 @@ export function LoginPage() {
         borderColor="surface-tertiary"
         className="w-full max-w-sm rounded-lg border"
       >
-        <Text fontSize="2xl" fontWeight="bold" textColor="content-primary">
+        <Text
+          fontSize="2xl"
+          fontWeight="bold"
+          textColor="content-primary"
+          className="text-center"
+          style={{ fontFamily: fonts.primary }}
+        >
           Log In
         </Text>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <Input type="email" label="Email" value={email} setValue={setEmail} autoComplete="email" required />
-          <PasswordInput label="Password" value={password} setValue={setPassword} autoComplete="current-password" required />
+          <Input
+            type="email"
+            label="Email"
+            value={email}
+            setValue={setEmail}
+            color="primary"
+            autoComplete="email"
+            required
+          />
+          <PasswordInput
+            label="Password"
+            value={password}
+            setValue={setPassword}
+            color="secondary"
+            autoComplete="current-password"
+            required
+          />
 
           {error && (
             <Text fontSize="sm" className="text-red-400">

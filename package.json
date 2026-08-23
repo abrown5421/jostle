@@ -2,7 +2,9 @@
   "name": "@org/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "dev": "nx run-many -t serve -p @jostle/api,@jostle/web"
+  },
   "private": true,
   "devDependencies": {
     "@nx/esbuild": "^23.1.1",

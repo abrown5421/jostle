@@ -1,11 +1,11 @@
 import { useId } from 'react';
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react';
 import { Container } from '../container/index.js';
-import { cn, FOCUS_RING_CLASS } from '../shared/index.js';
+import { BORDER_CLASS, cn, FOCUS_RING_CLASS } from '../shared/index.js';
 import type { AnimatableProps, BlowoffProps, BrandColor } from '../shared/index.js';
 
 const BASE_INPUT_CLASS =
-  'w-full rounded-md border border-content-tertiary bg-transparent px-3 py-2 text-content-primary placeholder:text-content-tertiary focus:outline-none focus:ring-2 transition-colors';
+  'w-full rounded-md border bg-transparent px-3 py-2 text-content-primary placeholder:text-content-tertiary focus:outline-none focus:ring-2 transition-colors';
 
 const LABEL_CLASS = 'text-sm font-medium text-content-secondary';
 
@@ -52,7 +52,7 @@ export function Input({
           id={inputId}
           value={value}
           onChange={(event) => setValue(event.target.value)}
-          className={cn(BASE_INPUT_CLASS, trailingElement && 'pr-10', FOCUS_RING_CLASS[color])}
+          className={cn(BASE_INPUT_CLASS, trailingElement && 'pr-10', BORDER_CLASS[color], FOCUS_RING_CLASS[color])}
           {...rest}
         />
         {trailingElement && <div className="absolute inset-y-0 right-0 flex items-center pr-3">{trailingElement}</div>}

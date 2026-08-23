@@ -1,3 +1,4 @@
+import { fonts } from '@jostle/assets';
 import { Button, Container, Input, PasswordInput, Text } from '@jostle/ui';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
@@ -49,19 +50,54 @@ export function SignupPage() {
         borderColor="surface-tertiary"
         className="w-full max-w-sm rounded-lg border"
       >
-        <Text fontSize="2xl" fontWeight="bold" textColor="content-primary">
+        <Text
+          fontSize="2xl"
+          fontWeight="bold"
+          textColor="content-primary"
+          className="text-center"
+          style={{ fontFamily: fonts.primary }}
+        >
           Sign Up
         </Text>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <Input label="First Name *" value={firstName} setValue={setFirstName} autoComplete="given-name" required />
-          <Input label="Last Name" value={lastName} setValue={setLastName} autoComplete="family-name" />
-          <Input type="email" label="Email *" value={email} setValue={setEmail} autoComplete="email" required />
-          <PasswordInput label="Password *" value={password} setValue={setPassword} autoComplete="new-password" required />
+          <Input
+            label="First Name *"
+            value={firstName}
+            setValue={setFirstName}
+            color="primary"
+            autoComplete="given-name"
+            required
+          />
+          <Input
+            label="Last Name"
+            value={lastName}
+            setValue={setLastName}
+            color="secondary"
+            autoComplete="family-name"
+          />
+          <Input
+            type="email"
+            label="Email *"
+            value={email}
+            setValue={setEmail}
+            color="accent"
+            autoComplete="email"
+            required
+          />
+          <PasswordInput
+            label="Password *"
+            value={password}
+            setValue={setPassword}
+            color="primary"
+            autoComplete="new-password"
+            required
+          />
           <PasswordInput
             label="Confirm Password *"
             value={confirmPassword}
             setValue={setConfirmPassword}
+            color="secondary"
             autoComplete="new-password"
             required
           />
