@@ -13,6 +13,8 @@ export interface DrawerProps {
   open: boolean;
   onClose: () => void;
   transition?: DrawerTransitionConfig;
+  /** Rendered alongside the close button, in the same row. */
+  header?: ReactNode;
   children: ReactNode;
 }
 
@@ -21,7 +23,7 @@ export interface DrawerProps {
  * after the exit animation finishes) is handled by useEnterExitAnimation —
  * this component just supplies the backdrop, Escape-to-close, and layout.
  */
-export function Drawer({ open, onClose, transition = DEFAULT_TRANSITION, children }: DrawerProps) {
+export function Drawer({ open, onClose, transition = DEFAULT_TRANSITION, header, children }: DrawerProps) {
   const { shouldRender, ref, className, style } = useEnterExitAnimation(open, transition);
 
   useEffect(() => {
@@ -48,22 +50,25 @@ export function Drawer({ open, onClose, transition = DEFAULT_TRANSITION, childre
         role="dialog"
         aria-modal="true"
       >
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close menu"
-          className="self-end text-content-secondary hover:text-content-primary"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" className="h-6 w-6">
-            <path
-              d="M6 6L18 18M18 6L6 18"
-              stroke="currentColor"
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
+        <div className={cn('flex items-center', header ? 'justify-between' : 'justify-end')}>
+          {header}
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close menu"
+            className="cursor-pointer text-content-secondary hover:text-content-primary"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" className="h-6 w-6">
+              <path
+                d="M6 6L18 18M18 6L6 18"
+                stroke="currentColor"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        </div>
         {children}
       </div>
     </>

@@ -6,7 +6,7 @@ import { cn, mergeRefs } from '../shared/index.js';
 import { Drawer } from './drawer.js';
 import type { NavbarProps, NavLinkItem, UserProfile } from './types.js';
 
-const LINK_CLASS = 'text-content-primary transition-colors hover:text-primary';
+const LINK_CLASS = 'cursor-pointer text-content-primary transition-colors hover:text-accent';
 
 function initialsFromName(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -134,10 +134,18 @@ export function Navbar({
         )}
       </div>
 
-      <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} transition={drawerTransition}>
+      <Drawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        transition={drawerTransition}
+        header={
+          isAuthenticated && user ? (
+            <p className="text-sm font-medium text-content-secondary">Welcome, {user.name}</p>
+          ) : undefined
+        }
+      >
         {isAuthenticated && user ? (
           <>
-            <p className="text-sm font-medium text-content-secondary">Welcome, {user.name}</p>
             <div className="flex flex-col gap-4 lg:hidden">{navLinks.map(renderLink)}</div>
             <div className="flex flex-col gap-4 border-t border-surface-tertiary pt-4">
               {profileLinks.map(renderLink)}
