@@ -1,4 +1,4 @@
-import { images } from '@jostle/assets';
+import { fonts, images } from '@jostle/assets';
 import { AnimatedRoutes } from '@jostle/router';
 import { Navbar } from '@jostle/ui';
 import type { UserProfile } from '@jostle/ui';
@@ -21,6 +21,7 @@ function AppShell() {
       <Navbar
         logoSrc={images.logo}
         appName="Jostle"
+        appNameFontFamily={fonts.primary}
         navLinks={NAV_LINKS}
         profileLinks={[{ label: 'Profile', href: `/profile/${MOCK_USER.id}` }]}
         isAuthenticated={isAuthenticated}
