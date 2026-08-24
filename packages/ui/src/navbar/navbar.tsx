@@ -1,4 +1,4 @@
-import type { MouseEvent, Ref } from 'react';
+import type { MouseEvent, ReactNode, Ref } from 'react';
 import { useState } from 'react';
 import { useAnimationProp } from '../animation/index.js';
 import { Button } from '../button/index.js';
@@ -15,20 +15,23 @@ function initialsFromName(name: string): string {
   return (first + last).toUpperCase();
 }
 
-function AvatarButton({ user, onClick }: { user: UserProfile; onClick: () => void }) {
+function AvatarButton({ user, badge, onClick }: { user: UserProfile; badge?: ReactNode; onClick: () => void }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={`Open menu for ${user.name}`}
-      className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary text-sm font-semibold text-primary-foreground"
-    >
-      {user.avatarUrl ? (
-        <img src={user.avatarUrl} alt={user.name} className="h-full w-full object-cover" />
-      ) : (
-        initialsFromName(user.name)
-      )}
-    </button>
+    <span className="relative inline-flex">
+      <button
+        type="button"
+        onClick={onClick}
+        aria-label={`Open menu for ${user.name}`}
+        className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary text-sm font-semibold text-slate-100"
+      >
+        {user.avatarUrl ? (
+          <img src={user.avatarUrl} alt={user.name} className="h-full w-full object-cover" />
+        ) : (
+          initialsFromName(user.name)
+        )}
+      </button>
+      {badge ? <span className="absolute bottom-0 right-0 inline-flex">{badge}</span> : null}
+    </span>
   );
 }
 
@@ -66,6 +69,7 @@ export function Navbar({
   profileLinks,
   isAuthenticated,
   user,
+  avatarBadge,
   onLogin,
   onLogout,
   onNavigate,
@@ -119,7 +123,7 @@ export function Navbar({
         <div className="hidden items-center gap-6 lg:flex">{navLinks.map(renderLink)}</div>
 
         {isAuthenticated ? (
-          user && <AvatarButton user={user} onClick={() => setDrawerOpen(true)} />
+          user && <AvatarButton user={user} badge={avatarBadge} onClick={() => setDrawerOpen(true)} />
         ) : (
           <>
             <span className="hidden lg:block">

@@ -23,6 +23,12 @@
     },
     {
       "path": "./packages/auth"
+    },
+    {
+      "path": "./packages/messaging"
+    },
+    {
+      "path": "./packages/presence"
     }
   ],
   "compilerOptions": {}

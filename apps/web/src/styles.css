@@ -5,6 +5,7 @@
    point it at packages/ui too since that's where component class names
    like bg-primary/flex/gap-4 actually appear in source. */
 @source '../../../packages/ui/src';
+@source '../../../packages/presence/src';
 
 body {
   @apply bg-surface-primary text-content-primary;

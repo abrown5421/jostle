@@ -38,6 +38,12 @@
     },
     {
       "path": "../../packages/assets/tsconfig.lib.json"
+    },
+    {
+      "path": "../../packages/messaging/tsconfig.lib.json"
+    },
+    {
+      "path": "../../packages/presence/tsconfig.lib.json"
     }
   ]
 }
