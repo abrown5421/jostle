@@ -6,6 +6,7 @@ export interface AuthUser {
   firstName: string;
   lastName?: string;
   email: string;
+  avatarUrl?: string;
 }
 
 export interface SignupInput {
@@ -38,7 +39,8 @@ async function postJson(path: string, body: unknown): Promise<AuthUser> {
     credentials: 'include',
     body: JSON.stringify(body),
   });
-  const data = (await response.json().catch(() => null)) as UserResponse | ErrorResponse | null;
+  const data = (await response.json().catch(() => null)) as
+    UserResponse | ErrorResponse | null;
   if (!response.ok) {
     throw new Error((data && 'error' in data && data.error) || DEFAULT_ERROR);
   }

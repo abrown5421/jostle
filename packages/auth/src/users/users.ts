@@ -1,12 +1,9 @@
-import { getClient } from '@jostle/db';
+import { resolveStoredMediaUrl } from '@jostle/media-storage';
 import { ObjectId } from 'mongodb';
-import type { Collection } from 'mongodb';
 import { hashPassword } from '../password/index.js';
+import { getUsersCollection } from './collection.js';
+import { DEFAULT_GENDER } from './types.js';
 import type { PublicUser, UserDocument } from './types.js';
-
-function getUsersCollection(): Collection<UserDocument> {
-  return getClient().db().collection<UserDocument>('users');
-}
 
 // A unique index makes "no two users share an email" a real DB-level
 // guarantee instead of a check-then-insert race condition. Idempotent —
@@ -19,12 +16,29 @@ async function ensureIndexes(): Promise<void> {
   indexesEnsured = true;
 }
 
-export function toPublicUser(user: UserDocument): PublicUser {
+export interface ToPublicUserOptions {
+  assetBaseUrl?: string;
+}
+
+export function toPublicUser(
+  user: UserDocument,
+  options: ToPublicUserOptions = {},
+): PublicUser {
   return {
     id: user._id.toString(),
     firstName: user.firstName,
     lastName: user.lastName,
     email: user.email,
+    bio: user.bio,
+    birthday: user.birthday,
+    gender: user.gender ?? DEFAULT_GENDER,
+    customGender: user.customGender,
+    avatarUrl: options.assetBaseUrl
+      ? resolveStoredMediaUrl(user.avatarUrl, options.assetBaseUrl)
+      : user.avatarUrl,
+    bannerUrl: options.assetBaseUrl
+      ? resolveStoredMediaUrl(user.bannerUrl, options.assetBaseUrl)
+      : user.bannerUrl,
   };
 }
 
@@ -52,6 +66,7 @@ export async function createUser(input: CreateUserInput): Promise<PublicUser> {
     email: input.email.trim().toLowerCase(),
     passwordHash: await hashPassword(input.password),
     createdAt: new Date(),
+    gender: DEFAULT_GENDER,
   };
 
   try {
@@ -64,10 +79,16 @@ export async function createUser(input: CreateUserInput): Promise<PublicUser> {
 }
 
 function isDuplicateEmailError(error: unknown): boolean {
-  return typeof error === 'object' && error !== null && (error as { code?: number }).code === 11000;
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    (error as { code?: number }).code === 11000
+  );
 }
 
-export async function findUserByEmail(email: string): Promise<UserDocument | null> {
+export async function findUserByEmail(
+  email: string,
+): Promise<UserDocument | null> {
   return getUsersCollection().findOne({ email: email.trim().toLowerCase() });
 }
 

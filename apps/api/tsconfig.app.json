@@ -13,19 +13,22 @@
       "path": "../../packages/notifications/tsconfig.lib.json"
     },
     {
+      "path": "../../packages/games/tsconfig.lib.json"
+    },
+    {
       "path": "../../packages/game-sessions/tsconfig.lib.json"
     },
     {
       "path": "../../packages/messaging/tsconfig.lib.json"
     },
     {
+      "path": "../../packages/media-storage/tsconfig.lib.json"
+    },
+    {
       "path": "../../packages/db/tsconfig.lib.json"
     },
     {
       "path": "../../packages/auth/tsconfig.lib.json"
-    },
-    {
-      "path": "../../packages/games/tsconfig.lib.json"
     }
   ]
 }

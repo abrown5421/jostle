@@ -1,6 +1,6 @@
 import { verifyPassword } from './password/index.js';
 import { findUserByEmail, toPublicUser } from './users/index.js';
-import type { PublicUser } from './users/index.js';
+import type { PublicUser, ToPublicUserOptions } from './users/index.js';
 
 /**
  * Deliberately the same error either way (unknown email vs wrong
@@ -14,12 +14,16 @@ export class InvalidCredentialsError extends Error {
   }
 }
 
-export async function authenticate(email: string, password: string): Promise<PublicUser> {
+export async function authenticate(
+  email: string,
+  password: string,
+  options: ToPublicUserOptions = {},
+): Promise<PublicUser> {
   const user = await findUserByEmail(email);
   if (!user) throw new InvalidCredentialsError();
 
   const valid = await verifyPassword(password, user.passwordHash);
   if (!valid) throw new InvalidCredentialsError();
 
-  return toPublicUser(user);
+  return toPublicUser(user, options);
 }

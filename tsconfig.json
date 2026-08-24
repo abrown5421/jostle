@@ -47,6 +47,9 @@
     },
     {
       "path": "./packages/game-catalog"
+    },
+    {
+      "path": "./packages/media-storage"
     }
   ],
   "compilerOptions": {}
