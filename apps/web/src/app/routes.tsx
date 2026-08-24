@@ -32,8 +32,8 @@ export const routes: PageRoute[] = [
     path: '/profile/:id',
     element: <ProfilePage />,
     transition: {
-      enter: { name: 'slideInRight', duration: 400 },
-      exit: { name: 'slideOutRight', duration: 300 },
+      enter: { name: 'fadeIn', duration: 400 },
+      exit: { name: 'fadeOut', duration: 300 },
     },
   },
 ];

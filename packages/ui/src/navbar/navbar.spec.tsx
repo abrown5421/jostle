@@ -105,6 +105,28 @@ describe('Navbar', () => {
       expect(avatar.textContent).toBe('JD');
     });
 
+    it('renders an avatarBadge over the avatar without altering its accessible name', () => {
+      act(() => {
+        root.render(
+          <Navbar
+            logoSrc="/logo.png"
+            appName="Jostle"
+            navLinks={navLinks}
+            profileLinks={profileLinks}
+            isAuthenticated={true}
+            user={user}
+            avatarBadge={<span data-testid="badge">●</span>}
+            onLogin={vi.fn()}
+            onLogout={vi.fn()}
+          />,
+        );
+      });
+
+      const avatar = container.querySelector('button[aria-label="Open menu for Jamie Doe"]') as HTMLElement;
+      expect(avatar.textContent).toBe('JD');
+      expect(container.querySelector('[data-testid="badge"]')).not.toBeNull();
+    });
+
     it('opens the drawer with both nav links and profile links', () => {
       renderAuthenticated();
       act(() => click(container.querySelector('button[aria-label="Open menu for Jamie Doe"]')!));

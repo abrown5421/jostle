@@ -1,4 +1,4 @@
-import type { Ref } from 'react';
+import type { ReactNode, Ref } from 'react';
 import type { AnimationConfig } from '../animation/index.js';
 import type { AnimatableProps, BlowoffProps } from '../shared/index.js';
 
@@ -31,6 +31,8 @@ export interface NavbarProps extends BlowoffProps, AnimatableProps {
   isAuthenticated: boolean;
   /** Required once isAuthenticated is true — drives the avatar + greeting. */
   user?: UserProfile;
+  /** Optional badge rendered over the avatar's bottom-right corner (e.g. a presence indicator). */
+  avatarBadge?: ReactNode;
   onLogin: () => void;
   onLogout: () => void;
   /**

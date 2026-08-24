@@ -34,4 +34,13 @@
   --color-content-primary: var(--palette-ice-1);
   --color-content-secondary: var(--palette-ice-2);
   --color-content-tertiary: var(--palette-ice-3);
+
+  /*
+   * Presence/status semantics — a closed 4-value set (online/away/busy/
+   * offline), not part of the general-purpose BrandColor palette above.
+   */
+  --color-status-online: var(--palette-green);
+  --color-status-away: var(--palette-amber);
+  --color-status-busy: var(--palette-red);
+  --color-status-offline: var(--palette-grey);
 }
