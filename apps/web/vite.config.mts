@@ -12,11 +12,16 @@ export default defineConfig({
   server: {
     port: 5173,
     host: 'localhost',
-    // The API mounts auth routes at /auth directly (not under /api), so
-    // that's what's proxied — same-origin from the browser's point of view,
-    // which is what lets the httpOnly session cookie round-trip in dev.
+    // The API mounts auth and notifications routes directly (not under
+    // /api), so those are what's proxied — same-origin from the browser's
+    // point of view, which is what lets the httpOnly session cookie
+    // round-trip in dev.
     proxy: {
       '/auth': {
+        target: 'http://localhost:3333',
+        changeOrigin: true,
+      },
+      '/notifications': {
         target: 'http://localhost:3333',
         changeOrigin: true,
       },

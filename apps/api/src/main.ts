@@ -4,6 +4,7 @@ import cors from 'cors';
 import express from 'express';
 import * as path from 'path';
 import { authRouter } from './routes/auth.js';
+import { notificationsRouter } from './routes/notifications.js';
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.get('/health', async (req, res) => {
 });
 
 app.use('/auth', authRouter);
+app.use('/notifications', notificationsRouter);
 
 const port = process.env.PORT || 3333;
 const server = app.listen(port, () => {
