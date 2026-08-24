@@ -41,6 +41,12 @@
     },
     {
       "path": "./packages/lobby"
+    },
+    {
+      "path": "./packages/games"
+    },
+    {
+      "path": "./packages/game-catalog"
     }
   ],
   "compilerOptions": {}

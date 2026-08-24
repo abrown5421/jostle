@@ -35,3 +35,18 @@ export interface PublicSessionPlayer {
   readonly avatarUrl?: string;
   readonly joinedAt: string;
 }
+
+export interface SessionConfigurationDocument {
+  readonly _id: ObjectId;
+  readonly sessionId: ObjectId;
+  readonly gameId: string;
+  readonly selectedSettings: Readonly<Record<string, string | number | boolean>>;
+  readonly updatedAt: Date;
+}
+
+export interface PublicSessionConfiguration {
+  readonly sessionId: string;
+  readonly gameId: string;
+  readonly selectedSettings: Readonly<Record<string, string | number | boolean>>;
+  readonly updatedAt: string;
+}

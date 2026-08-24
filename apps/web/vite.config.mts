@@ -29,6 +29,17 @@ export default defineConfig({
         target: 'http://localhost:3333',
         changeOrigin: true,
       },
+      '/games': {
+        target: 'http://localhost:3333',
+        changeOrigin: true,
+        // Unlike /auth, /notifications, and /sessions, this prefix collides
+        // with a client-side page at the same path (/games). A full-page
+        // navigation there sends an `Accept: text/html` request, which
+        // must fall through to the SPA shell instead of hitting the API.
+        bypass: (req) => {
+          return req.headers.accept?.includes('html') ? '/index.html' : undefined;
+        },
+      },
     },
   },
   preview: {

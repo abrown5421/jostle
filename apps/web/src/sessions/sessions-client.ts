@@ -1,5 +1,5 @@
 import { DisplayNameTakenError, SessionNotFoundError } from '@jostle/lobby';
-import type { HostedSession, LobbyClient } from '@jostle/lobby';
+import type { HostedSession, LobbyClient, SessionConfigurationShape } from '@jostle/lobby';
 import type { SessionRosterPlayer } from '@jostle/messaging';
 
 interface SessionResponse {
@@ -7,6 +7,10 @@ interface SessionResponse {
     readonly sessionId: string;
     readonly joinCode: string;
   };
+}
+
+interface SessionConfigurationResponse {
+  readonly configuration: SessionConfigurationShape | null;
 }
 
 async function getJson(path: string): Promise<unknown> {
@@ -22,6 +26,17 @@ async function postJson(path: string, body: unknown): Promise<Response> {
     credentials: 'include',
     body: JSON.stringify(body),
   });
+}
+
+async function putJson(path: string, body: unknown): Promise<unknown> {
+  const response = await fetch(path, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) throw new Error(`Request to ${path} failed with status ${response.status}`);
+  return response.json();
 }
 
 export const sessionsClient: LobbyClient = {
@@ -66,5 +81,16 @@ export const sessionsClient: LobbyClient = {
       credentials: 'include',
     });
     if (!response.ok) throw new Error(`Request to remove player failed with status ${response.status}`);
+  },
+
+  async setSessionConfiguration({ sessionId, gameId, selectedSettings }) {
+    const data = (await putJson(`/sessions/${sessionId}/configuration`, { gameId, selectedSettings })) as SessionConfigurationResponse;
+    if (!data.configuration) throw new Error('Configuration was not returned.');
+    return data.configuration;
+  },
+
+  async getSessionConfiguration(sessionId) {
+    const data = (await getJson(`/sessions/${sessionId}/configuration`)) as SessionConfigurationResponse;
+    return data.configuration;
   },
 };

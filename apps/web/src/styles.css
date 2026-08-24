@@ -8,6 +8,7 @@
 @source '../../../packages/presence/src';
 @source '../../../packages/notification-center/src';
 @source '../../../packages/lobby/src';
+@source '../../../packages/game-catalog/src';
 
 body {
   @apply bg-surface-primary text-content-primary;

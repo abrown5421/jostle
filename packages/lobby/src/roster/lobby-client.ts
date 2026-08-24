@@ -30,10 +30,25 @@ export interface JoinSessionResult {
   readonly playerId: string;
 }
 
+export interface SessionConfigurationShape {
+  readonly sessionId: string;
+  readonly gameId: string;
+  readonly selectedSettings: Readonly<Record<string, string | number | boolean>>;
+  readonly updatedAt: string;
+}
+
+export interface SetSessionConfigurationInput {
+  readonly sessionId: string;
+  readonly gameId: string;
+  readonly selectedSettings: Readonly<Record<string, string | number | boolean>>;
+}
+
 export interface LobbyClient {
   readonly createSession: () => Promise<HostedSession>;
   readonly getSessionById: (sessionId: string) => Promise<HostedSession | null>;
   readonly joinSession: (input: JoinSessionInput) => Promise<JoinSessionResult>;
   readonly listPlayers: (sessionId: string) => Promise<ReadonlyArray<SessionRosterPlayer>>;
   readonly removePlayer: (input: { sessionId: string; playerId: string }) => Promise<void>;
+  readonly setSessionConfiguration: (input: SetSessionConfigurationInput) => Promise<SessionConfigurationShape>;
+  readonly getSessionConfiguration: (sessionId: string) => Promise<SessionConfigurationShape | null>;
 }

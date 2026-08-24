@@ -1,4 +1,11 @@
-import type { PublicSession, PublicSessionPlayer, SessionDocument, SessionPlayerDocument } from './types.js';
+import type {
+  PublicSession,
+  PublicSessionConfiguration,
+  PublicSessionPlayer,
+  SessionConfigurationDocument,
+  SessionDocument,
+  SessionPlayerDocument,
+} from './types.js';
 
 export function toPublicSession(document: SessionDocument): PublicSession {
   return {
@@ -18,5 +25,14 @@ export function toPublicSessionPlayer(document: SessionPlayerDocument): PublicSe
     displayName: document.displayName,
     avatarUrl: document.avatarUrl,
     joinedAt: document.joinedAt.toISOString(),
+  };
+}
+
+export function toPublicSessionConfiguration(document: SessionConfigurationDocument): PublicSessionConfiguration {
+  return {
+    sessionId: document.sessionId.toString(),
+    gameId: document.gameId,
+    selectedSettings: document.selectedSettings,
+    updatedAt: document.updatedAt.toISOString(),
   };
 }

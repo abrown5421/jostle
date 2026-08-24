@@ -1,5 +1,5 @@
 import type { PageRoute } from '@jostle/router';
-import { HomePage, HostPage, JoinPage, LoginPage, ProfilePage, SignupPage } from '../pages/index.js';
+import { GamesPage, HomePage, HostPage, JoinPage, LoginPage, ProfilePage, SettingsPage, SignupPage } from '../pages/index.js';
 
 // Each route owns its own enter/exit pair, deliberately varied to show the
 // transition framework isn't tied to one effect.
@@ -45,8 +45,24 @@ export const routes: PageRoute[] = [
     },
   },
   {
+    path: '/host/:sessionId/settings',
+    element: <SettingsPage />,
+    transition: {
+      enter: { name: 'fadeIn', duration: 400 },
+      exit: { name: 'fadeOut', duration: 300 },
+    },
+  },
+  {
     path: '/join',
     element: <JoinPage />,
+    transition: {
+      enter: { name: 'fadeIn', duration: 400 },
+      exit: { name: 'fadeOut', duration: 300 },
+    },
+  },
+  {
+    path: '/games',
+    element: <GamesPage />,
     transition: {
       enter: { name: 'fadeIn', duration: 400 },
       exit: { name: 'fadeOut', duration: 300 },

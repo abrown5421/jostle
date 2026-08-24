@@ -28,6 +28,8 @@ function createFakeClient(overrides: Partial<LobbyClient> = {}): LobbyClient {
     joinSession: vi.fn(),
     listPlayers: vi.fn().mockResolvedValue([]),
     removePlayer: vi.fn().mockResolvedValue(undefined),
+    setSessionConfiguration: vi.fn(),
+    getSessionConfiguration: vi.fn(),
     ...overrides,
   };
 }

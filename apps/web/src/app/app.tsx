@@ -11,7 +11,10 @@ import { pubsub } from '../messaging/pubsub-client.js';
 import { notificationsClient } from '../notifications/notifications-client.js';
 import { routes } from './routes.js';
 
-const NAV_LINKS = [{ label: 'Home', href: '/' }];
+const NAV_LINKS = [
+  { label: 'Home', href: '/' },
+  { label: 'Games', href: '/games' },
+];
 
 function toProfile(user: { id: string; firstName: string; lastName?: string }): UserProfile {
   return { id: user.id, name: [user.firstName, user.lastName].filter(Boolean).join(' ') };

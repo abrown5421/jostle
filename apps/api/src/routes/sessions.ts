@@ -5,12 +5,15 @@ import {
   DisplayNameAlreadyInUseError,
   getSessionByJoinCode,
   getSessionById as getGameSessionById,
+  getSessionConfiguration,
   listSessionPlayers,
   NotAuthorizedToRemovePlayerError,
   PlayerNotFoundError,
   removeSessionPlayer,
+  setSessionConfiguration,
 } from '@jostle/game-sessions';
-import { publishTopic, sessionRosterTopic } from '@jostle/messaging';
+import { getGameById, validateSelectedSettings } from '@jostle/games';
+import { publishTopic, sessionConfigTopic, sessionRosterTopic } from '@jostle/messaging';
 import { Router } from 'express';
 import type { Request } from 'express';
 import { pubsub } from '../messaging/pubsub-client.js';
@@ -117,4 +120,65 @@ sessionsRouter.delete('/:sessionId/players/:playerId', async (req, res) => {
     }
     throw error;
   }
+});
+
+sessionsRouter.get('/:sessionId/configuration', async (req, res) => {
+  const configuration = await getSessionConfiguration(req.params.sessionId);
+  res.json({ configuration });
+});
+
+sessionsRouter.put('/:sessionId/configuration', async (req, res) => {
+  const { sessionId } = req.params;
+  const { gameId, selectedSettings } = req.body ?? {};
+
+  const actingUserId = await getAuthenticatedUserId(req);
+  if (!actingUserId) {
+    res.status(401).json({ error: 'Not authenticated.' });
+    return;
+  }
+
+  const session = await getGameSessionById(sessionId);
+  if (!session) {
+    res.status(404).json({ error: 'Session not found.' });
+    return;
+  }
+  if (actingUserId !== session.hostUserId) {
+    res.status(403).json({ error: 'Only the host can configure this session.' });
+    return;
+  }
+
+  if (typeof gameId !== 'string' || gameId.trim().length === 0) {
+    res.status(400).json({ error: 'gameId is required.' });
+    return;
+  }
+
+  const game = await getGameById(gameId);
+  if (!game) {
+    res.status(404).json({ error: 'Game not found.' });
+    return;
+  }
+
+  const validation = validateSelectedSettings(game.defaultSettingsSchema, selectedSettings ?? {});
+  if (!validation.valid) {
+    res.status(400).json({ errors: validation.errors });
+    return;
+  }
+
+  const { configuration, isNewGameSelection } = await setSessionConfiguration({
+    sessionId,
+    gameId,
+    selectedSettings: validation.sanitizedSettings,
+  });
+
+  await publishTopic(pubsub, sessionConfigTopic, {
+    params: { sessionId },
+    payload: {
+      kind: isNewGameSelection ? 'GAME_SELECTED' : 'CONFIGURATION_UPDATED',
+      sessionId,
+      gameId: configuration.gameId,
+      selectedSettings: configuration.selectedSettings,
+    },
+  });
+
+  res.json({ configuration });
 });

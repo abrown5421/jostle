@@ -50,6 +50,9 @@
     },
     {
       "path": "../../packages/lobby/tsconfig.lib.json"
+    },
+    {
+      "path": "../../packages/game-catalog/tsconfig.lib.json"
     }
   ]
 }

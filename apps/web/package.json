@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@jostle/assets": "*",
+    "@jostle/game-catalog": "*",
     "@jostle/lobby": "*",
     "@jostle/messaging": "*",
     "@jostle/notification-center": "*",

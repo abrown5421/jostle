@@ -5,3 +5,4 @@ export * from './notifications.js';
 export * from './notification-feed.js';
 export * from './session.js';
 export * from './session-roster.js';
+export * from './session-config.js';
