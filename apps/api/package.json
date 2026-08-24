@@ -89,6 +89,7 @@
   "dependencies": {
     "@jostle/auth": "*",
     "@jostle/db": "*",
+    "@jostle/media-storage": "*",
     "@jostle/messaging": "*",
     "@jostle/game-sessions": "*",
     "@jostle/games": "*",
@@ -96,11 +97,13 @@
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "express": "^5.1.0",
+    "multer": "^2.2.0",
     "ws": "^8.21.3"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
+    "@types/multer": "^2.2.0",
     "@types/ws": "^8.18.1",
     "vitest": "~3.2.7"
   },

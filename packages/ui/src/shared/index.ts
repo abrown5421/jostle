@@ -3,3 +3,4 @@ export * from './spacing.js';
 export * from './props.js';
 export * from './cn.js';
 export * from './refs.js';
+export * from './initials.js';

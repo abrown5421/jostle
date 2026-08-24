@@ -29,6 +29,14 @@ export default defineConfig({
         target: 'http://localhost:3333',
         changeOrigin: true,
       },
+      '/users': {
+        target: 'http://localhost:3333',
+        changeOrigin: true,
+      },
+      '/uploads': {
+        target: 'http://localhost:3333',
+        changeOrigin: true,
+      },
       '/games': {
         target: 'http://localhost:3333',
         changeOrigin: true,
@@ -37,7 +45,9 @@ export default defineConfig({
         // navigation there sends an `Accept: text/html` request, which
         // must fall through to the SPA shell instead of hitting the API.
         bypass: (req) => {
-          return req.headers.accept?.includes('html') ? '/index.html' : undefined;
+          return req.headers.accept?.includes('html')
+            ? '/index.html'
+            : undefined;
         },
       },
     },

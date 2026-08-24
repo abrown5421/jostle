@@ -8,6 +8,7 @@ import {
   InvalidCredentialsError,
 } from '@jostle/auth';
 import { Router } from 'express';
+import { assetBaseUrl } from '../media/storage.js';
 
 export const SESSION_COOKIE = 'jostle_session';
 
@@ -22,10 +23,13 @@ const COOKIE_OPTIONS = {
 export const authRouter = Router();
 
 authRouter.post('/signup', async (req, res) => {
-  const { firstName, lastName, email, password, confirmPassword } = req.body ?? {};
+  const { firstName, lastName, email, password, confirmPassword } =
+    req.body ?? {};
 
   if (!firstName || !email || !password) {
-    res.status(400).json({ error: 'First name, email, and password are required.' });
+    res
+      .status(400)
+      .json({ error: 'First name, email, and password are required.' });
     return;
   }
   if (password !== confirmPassword) {
@@ -60,7 +64,7 @@ authRouter.post('/login', async (req, res) => {
   }
 
   try {
-    const user = await authenticate(email, password);
+    const user = await authenticate(email, password, { assetBaseUrl });
     const token = await createSession(user.id);
     res.cookie(SESSION_COOKIE, token, COOKIE_OPTIONS);
     res.json({ user });
@@ -88,7 +92,7 @@ authRouter.get('/me', async (req, res) => {
     return;
   }
 
-  const user = await getUserForSessionToken(token);
+  const user = await getUserForSessionToken(token, { assetBaseUrl });
   if (!user) {
     res.status(401).json({ error: 'Not authenticated.' });
     return;

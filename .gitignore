@@ -5,6 +5,12 @@ dist
 tmp
 out-tsc
 
+# user-uploaded media (local dev; production uses a Render persistent disk).
+# apps/api always serves from its esbuild-bundled dist/main.js, so the
+# fallback uploads root resolves relative to that bundle's own directory —
+# i.e. sibling to dist/, not inside src/.
+apps/api/assets/images
+
 # dependencies
 node_modules
 

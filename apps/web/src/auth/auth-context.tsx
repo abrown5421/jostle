@@ -1,4 +1,11 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import type { ReactNode } from 'react';
 import * as authClient from './auth-client.js';
 import type { AuthUser, LoginInput, SignupInput } from './auth-client.js';
@@ -11,6 +18,8 @@ export interface AuthContextValue {
   login: (input: LoginInput) => Promise<void>;
   signup: (input: SignupInput) => Promise<void>;
   logout: () => Promise<void>;
+  /** Re-fetches the session user — call after a profile edit changes name/avatar so the navbar stays in sync. */
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -47,9 +56,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    setUser(await authClient.fetchCurrentUser());
+  }, []);
+
   const value = useMemo<AuthContextValue>(
-    () => ({ user, isAuthenticated: user !== null, isLoading, login, signup, logout }),
-    [user, isLoading, login, signup, logout],
+    () => ({
+      user,
+      isAuthenticated: user !== null,
+      isLoading,
+      login,
+      signup,
+      logout,
+      refreshUser,
+    }),
+    [user, isLoading, login, signup, logout, refreshUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

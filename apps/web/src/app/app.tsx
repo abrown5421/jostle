@@ -1,5 +1,9 @@
 import { fonts, images } from '@jostle/assets';
-import { NotificationBell, NotificationDrawer, useNotificationCenter } from '@jostle/notification-center';
+import {
+  NotificationBell,
+  NotificationDrawer,
+  useNotificationCenter,
+} from '@jostle/notification-center';
 import { PresenceLight, useLocalPresenceBroadcaster } from '@jostle/presence';
 import { AnimatedRoutes } from '@jostle/router';
 import { Navbar } from '@jostle/ui';
@@ -16,26 +20,43 @@ const NAV_LINKS = [
   { label: 'Games', href: '/games' },
 ];
 
-function toProfile(user: { id: string; firstName: string; lastName?: string }): UserProfile {
-  return { id: user.id, name: [user.firstName, user.lastName].filter(Boolean).join(' ') };
+function toProfile(user: {
+  id: string;
+  firstName: string;
+  lastName?: string;
+  avatarUrl?: string;
+}): UserProfile {
+  return {
+    id: user.id,
+    name: [user.firstName, user.lastName].filter(Boolean).join(' '),
+    avatarUrl: user.avatarUrl,
+  };
 }
 
 function PresenceBadge({ entityId }: { entityId: string }) {
-  const status = useLocalPresenceBroadcaster({ pubsub, entityId, isAuthenticated: true });
+  const status = useLocalPresenceBroadcaster({
+    pubsub,
+    entityId,
+    isAuthenticated: true,
+  });
   return <PresenceLight status={status} size="sm" />;
 }
 
 function NotificationCenterWidget({ recipientId }: { recipientId: string }) {
   const [isOpen, setIsOpen] = useState(false);
-  const { items, unreadCount, hasMore, loadMore, markAsRead, markAllAsRead } = useNotificationCenter({
-    pubsub,
-    recipientId,
-    client: notificationsClient,
-  });
+  const { items, unreadCount, hasMore, loadMore, markAsRead, markAllAsRead } =
+    useNotificationCenter({
+      pubsub,
+      recipientId,
+      client: notificationsClient,
+    });
 
   return (
     <>
-      <NotificationBell unreadCount={unreadCount} onClick={() => setIsOpen(true)} />
+      <NotificationBell
+        unreadCount={unreadCount}
+        onClick={() => setIsOpen(true)}
+      />
       <NotificationDrawer
         open={isOpen}
         onClose={() => setIsOpen(false)}
@@ -66,11 +87,19 @@ function AppShell() {
         appName="Jostle"
         appNameFontFamily={fonts.primary}
         navLinks={NAV_LINKS}
-        profileLinks={profile ? [{ label: 'Profile', href: `/profile/${profile.id}` }] : []}
+        profileLinks={
+          profile ? [{ label: 'Profile', href: `/profile/${profile.id}` }] : []
+        }
         isAuthenticated={isAuthenticated}
         user={profile}
-        avatarBadge={profile ? <PresenceBadge entityId={profile.id} /> : undefined}
-        notificationTrigger={profile ? <NotificationCenterWidget recipientId={profile.id} /> : undefined}
+        avatarBadge={
+          profile ? <PresenceBadge entityId={profile.id} /> : undefined
+        }
+        notificationTrigger={
+          profile ? (
+            <NotificationCenterWidget recipientId={profile.id} />
+          ) : undefined
+        }
         onLogin={() => navigate('/login')}
         onLogout={async () => {
           await logout();
