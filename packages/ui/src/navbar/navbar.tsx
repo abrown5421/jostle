@@ -70,6 +70,7 @@ export function Navbar({
   isAuthenticated,
   user,
   avatarBadge,
+  notificationTrigger,
   onLogin,
   onLogout,
   onNavigate,
@@ -123,7 +124,12 @@ export function Navbar({
         <div className="hidden items-center gap-6 lg:flex">{navLinks.map(renderLink)}</div>
 
         {isAuthenticated ? (
-          user && <AvatarButton user={user} badge={avatarBadge} onClick={() => setDrawerOpen(true)} />
+          user && (
+            <>
+              {notificationTrigger}
+              <AvatarButton user={user} badge={avatarBadge} onClick={() => setDrawerOpen(true)} />
+            </>
+          )
         ) : (
           <>
             <span className="hidden lg:block">

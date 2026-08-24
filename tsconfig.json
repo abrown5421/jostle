@@ -29,6 +29,12 @@
     },
     {
       "path": "./packages/presence"
+    },
+    {
+      "path": "./packages/notifications"
+    },
+    {
+      "path": "./packages/notification-center"
     }
   ],
   "compilerOptions": {}

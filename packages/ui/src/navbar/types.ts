@@ -33,6 +33,8 @@ export interface NavbarProps extends BlowoffProps, AnimatableProps {
   user?: UserProfile;
   /** Optional badge rendered over the avatar's bottom-right corner (e.g. a presence indicator). */
   avatarBadge?: ReactNode;
+  /** Optional trigger rendered immediately left of the avatar while authenticated (e.g. a notification bell). */
+  notificationTrigger?: ReactNode;
   onLogin: () => void;
   onLogout: () => void;
   /**

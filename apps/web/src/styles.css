@@ -6,6 +6,7 @@
    like bg-primary/flex/gap-4 actually appear in source. */
 @source '../../../packages/ui/src';
 @source '../../../packages/presence/src';
+@source '../../../packages/notification-center/src';
 
 body {
   @apply bg-surface-primary text-content-primary;

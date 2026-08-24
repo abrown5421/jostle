@@ -5,6 +5,7 @@
   "dependencies": {
     "@jostle/assets": "*",
     "@jostle/messaging": "*",
+    "@jostle/notification-center": "*",
     "@jostle/presence": "*",
     "@jostle/router": "*",
     "@jostle/ui": "*",

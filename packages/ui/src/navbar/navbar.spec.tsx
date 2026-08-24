@@ -127,6 +127,48 @@ describe('Navbar', () => {
       expect(container.querySelector('[data-testid="badge"]')).not.toBeNull();
     });
 
+    it('renders a notificationTrigger immediately before the avatar', () => {
+      act(() => {
+        root.render(
+          <Navbar
+            logoSrc="/logo.png"
+            appName="Jostle"
+            navLinks={navLinks}
+            profileLinks={profileLinks}
+            isAuthenticated={true}
+            user={user}
+            notificationTrigger={<button data-testid="bell">bell</button>}
+            onLogin={vi.fn()}
+            onLogout={vi.fn()}
+          />,
+        );
+      });
+
+      const bell = container.querySelector('[data-testid="bell"]');
+      const avatar = container.querySelector('button[aria-label="Open menu for Jamie Doe"]');
+      expect(bell).not.toBeNull();
+      expect(bell!.compareDocumentPosition(avatar!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
+
+    it('omits the notificationTrigger while unauthenticated', () => {
+      act(() => {
+        root.render(
+          <Navbar
+            logoSrc="/logo.png"
+            appName="Jostle"
+            navLinks={navLinks}
+            profileLinks={profileLinks}
+            isAuthenticated={false}
+            notificationTrigger={<button data-testid="bell">bell</button>}
+            onLogin={vi.fn()}
+            onLogout={vi.fn()}
+          />,
+        );
+      });
+
+      expect(container.querySelector('[data-testid="bell"]')).toBeNull();
+    });
+
     it('opens the drawer with both nav links and profile links', () => {
       renderAuthenticated();
       act(() => click(container.querySelector('button[aria-label="Open menu for Jamie Doe"]')!));

@@ -44,6 +44,9 @@
     },
     {
       "path": "../../packages/presence/tsconfig.lib.json"
+    },
+    {
+      "path": "../../packages/notification-center/tsconfig.lib.json"
     }
   ]
 }

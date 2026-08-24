@@ -89,6 +89,8 @@
   "dependencies": {
     "@jostle/auth": "*",
     "@jostle/db": "*",
+    "@jostle/messaging": "*",
+    "@jostle/notifications": "*",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "express": "^5.1.0"

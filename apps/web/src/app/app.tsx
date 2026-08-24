@@ -1,11 +1,14 @@
 import { fonts, images } from '@jostle/assets';
+import { NotificationBell, NotificationDrawer, useNotificationCenter } from '@jostle/notification-center';
 import { PresenceLight, useLocalPresenceBroadcaster } from '@jostle/presence';
 import { AnimatedRoutes } from '@jostle/router';
 import { Navbar } from '@jostle/ui';
 import type { UserProfile } from '@jostle/ui';
+import { useState } from 'react';
 import { BrowserRouter, useNavigate } from 'react-router';
 import { AuthProvider, useAuth } from '../auth/index.js';
-import { pubsub } from '../presence/pubsub-client.js';
+import { pubsub } from '../messaging/pubsub-client.js';
+import { notificationsClient } from '../notifications/notifications-client.js';
 import { routes } from './routes.js';
 
 const NAV_LINKS = [{ label: 'Home', href: '/' }];
@@ -17,6 +20,30 @@ function toProfile(user: { id: string; firstName: string; lastName?: string }): 
 function PresenceBadge({ entityId }: { entityId: string }) {
   const status = useLocalPresenceBroadcaster({ pubsub, entityId, isAuthenticated: true });
   return <PresenceLight status={status} size="sm" />;
+}
+
+function NotificationCenterWidget({ recipientId }: { recipientId: string }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const { items, unreadCount, hasMore, loadMore, markAsRead, markAllAsRead } = useNotificationCenter({
+    pubsub,
+    recipientId,
+    client: notificationsClient,
+  });
+
+  return (
+    <>
+      <NotificationBell unreadCount={unreadCount} onClick={() => setIsOpen(true)} />
+      <NotificationDrawer
+        open={isOpen}
+        onClose={() => setIsOpen(false)}
+        notifications={items}
+        onMarkAsRead={markAsRead}
+        onMarkAllAsRead={markAllAsRead}
+        hasMore={hasMore}
+        onLoadMore={loadMore}
+      />
+    </>
+  );
 }
 
 function AppShell() {
@@ -40,6 +67,7 @@ function AppShell() {
         isAuthenticated={isAuthenticated}
         user={profile}
         avatarBadge={profile ? <PresenceBadge entityId={profile.id} /> : undefined}
+        notificationTrigger={profile ? <NotificationCenterWidget recipientId={profile.id} /> : undefined}
         onLogin={() => navigate('/login')}
         onLogout={async () => {
           await logout();
