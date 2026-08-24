@@ -3,8 +3,10 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
 import * as path from 'path';
+import { closePubSubTransport } from './messaging/pubsub-client.js';
 import { authRouter } from './routes/auth.js';
 import { notificationsRouter } from './routes/notifications.js';
+import { sessionsRouter } from './routes/sessions.js';
 
 const app = express();
 
@@ -31,6 +33,7 @@ app.get('/health', async (req, res) => {
 
 app.use('/auth', authRouter);
 app.use('/notifications', notificationsRouter);
+app.use('/sessions', sessionsRouter);
 
 const port = process.env.PORT || 3333;
 const server = app.listen(port, () => {
@@ -40,6 +43,7 @@ server.on('error', console.error);
 
 const shutdown = async () => {
   server.close();
+  await closePubSubTransport();
   await closeClient();
   process.exit(0);
 };

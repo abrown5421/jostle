@@ -35,7 +35,7 @@ export const Avatar = memo(function Avatar({ name, imageUrl, status, size = 'md'
         <span
           role="img"
           aria-label={name}
-          className="flex h-full w-full items-center justify-center rounded-full bg-surface-tertiary"
+          className="flex h-full w-full items-center justify-center rounded-full bg-primary"
         >
           {initialsFromName(name)}
         </span>

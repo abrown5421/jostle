@@ -90,14 +90,18 @@
     "@jostle/auth": "*",
     "@jostle/db": "*",
     "@jostle/messaging": "*",
+    "@jostle/game-sessions": "*",
     "@jostle/notifications": "*",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "ws": "^8.21.3"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.10",
-    "@types/cors": "^2.8.19"
+    "@types/cors": "^2.8.19",
+    "@types/ws": "^8.18.1",
+    "vitest": "~3.2.7"
   },
   "exports": {
     "./package.json": "./package.json",

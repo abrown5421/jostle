@@ -25,6 +25,10 @@ export default defineConfig({
         target: 'http://localhost:3333',
         changeOrigin: true,
       },
+      '/sessions': {
+        target: 'http://localhost:3333',
+        changeOrigin: true,
+      },
     },
   },
   preview: {

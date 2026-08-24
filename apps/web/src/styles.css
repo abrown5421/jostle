@@ -7,6 +7,7 @@
 @source '../../../packages/ui/src';
 @source '../../../packages/presence/src';
 @source '../../../packages/notification-center/src';
+@source '../../../packages/lobby/src';
 
 body {
   @apply bg-surface-primary text-content-primary;

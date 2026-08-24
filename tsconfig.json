@@ -35,6 +35,12 @@
     },
     {
       "path": "./packages/notification-center"
+    },
+    {
+      "path": "./packages/game-sessions"
+    },
+    {
+      "path": "./packages/lobby"
     }
   ],
   "compilerOptions": {}
