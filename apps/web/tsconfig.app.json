@@ -47,6 +47,9 @@
     },
     {
       "path": "../../packages/notification-center/tsconfig.lib.json"
+    },
+    {
+      "path": "../../packages/lobby/tsconfig.lib.json"
     }
   ]
 }

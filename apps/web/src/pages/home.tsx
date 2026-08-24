@@ -1,12 +1,17 @@
 import { Button, Container } from '@jostle/ui';
+import { useNavigate } from 'react-router';
+import { sessionsClient } from '../sessions/sessions-client.js';
 
 export function HomePage() {
-  const handleHost = (): void => {
-    // Placeholder for hosting logic
+  const navigate = useNavigate();
+  const handleHost = async (): Promise<void> => {
+    const session = await sessionsClient.createSession();
+    navigate(`/host/${session.sessionId}`, { replace: true });
   };
 
   const handleJoin = (): void => {
     // Placeholder for joining logic
+    navigate('/join')
   };
 
   return (
