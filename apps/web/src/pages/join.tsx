@@ -7,8 +7,9 @@ import {
   validateJoinFormCompletion,
 } from '@jostle/lobby';
 import type { JoinFormErrors, JoinFormFields } from '@jostle/lobby';
+import { sessionStatusTopic, subscribeTopic } from '@jostle/messaging';
 import { Button, Container, Input, Text, useSoundEffect } from '@jostle/ui';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { pubsub } from '../messaging/pubsub-client.js';
@@ -27,6 +28,16 @@ function JoinedWaitingRoom({ sessionId, playerId }: { sessionId: string; playerI
       navigate('/');
     },
   });
+
+  useEffect(
+    () =>
+      subscribeTopic(pubsub, sessionStatusTopic, { sessionId }, (envelope) => {
+        if (envelope.payload.status === 'active') {
+          navigate(`/play/${sessionId}`, { replace: true });
+        }
+      }),
+    [sessionId, navigate],
+  );
 
   return (
     <Container
@@ -67,6 +78,7 @@ export function JoinPage() {
     setErrors({});
     try {
       const result = await sessionsClient.joinSession({ joinCode: fields.joinCode, displayName: fields.displayName });
+      sessionStorage.setItem(`jostle:player:${result.sessionId}`, result.playerId);
       setJoined(result);
     } catch (error) {
       if (error instanceof DisplayNameTakenError) {

@@ -10,12 +10,12 @@ export const GAMES_SEED_DATA: ReadonlyArray<GameDocument> = [
     minPlayers: 2,
     maxPlayers: 12,
     defaultSettingsSchema: [
-      { key: 'playlistSourceUrl', label: 'Playlist Source URL', type: 'string', defaultValue: '' },
-      { key: 'songBankSize', label: 'Song Bank Size', type: 'number', defaultValue: 20, min: 5, max: 100, step: 1 },
-      { key: 'clipDurationSeconds', label: 'Clip Duration (seconds)', type: 'number', defaultValue: 15, min: 5, max: 60, step: 1 },
-      { key: 'enableArtistGuess', label: 'Enable Artist Guess', type: 'boolean', defaultValue: true },
-      { key: 'enableAlbumGuess', label: 'Enable Album Guess', type: 'boolean', defaultValue: false },
-      { key: 'difficultyRating', label: 'Difficulty Rating', type: 'number', defaultValue: 5, min: 1, max: 10, step: 1 },
+      { key: 'songCount', label: 'Song Count', type: 'number', defaultValue: 60, min: 5, max: 100, step: 1 },
+      { key: 'clipDurationSeconds', label: 'Clip Duration (seconds)', type: 'number', defaultValue: 60, min: 15, max: 90, step: 5 },
+      { key: 'guessArtist', label: 'Guess Artist', type: 'boolean', defaultValue: true },
+      { key: 'guessAlbum', label: 'Guess Album', type: 'boolean', defaultValue: false },
+      { key: 'difficulty', label: 'Difficulty', type: 'number', defaultValue: 5, min: 1, max: 10, step: 1 },
+      { key: 'selectedPlaylistId', label: 'Selected Playlist', type: 'string', defaultValue: '' },
     ],
   },
   {

@@ -6,6 +6,7 @@ interface SessionResponse {
   readonly session: {
     readonly sessionId: string;
     readonly joinCode: string;
+    readonly status: 'lobby' | 'active' | 'ended';
   };
 }
 

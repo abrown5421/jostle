@@ -1,5 +1,7 @@
 import type { SessionRosterPlayer } from '@jostle/messaging';
 
+export type SessionStatus = 'lobby' | 'active' | 'ended';
+
 export class DisplayNameTakenError extends Error {
   constructor(message = 'That display name is already taken in this session.') {
     super(message);
@@ -17,6 +19,7 @@ export class SessionNotFoundError extends Error {
 export interface HostedSession {
   readonly sessionId: string;
   readonly joinCode: string;
+  readonly status: SessionStatus;
 }
 
 export interface JoinSessionInput {

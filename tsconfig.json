@@ -56,6 +56,15 @@
     },
     {
       "path": "./packages/integrations-ui"
+    },
+    {
+      "path": "./packages/spotify"
+    },
+    {
+      "path": "./packages/ipod-war"
+    },
+    {
+      "path": "./packages/ipod-war-ui"
     }
   ],
   "compilerOptions": {}

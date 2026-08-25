@@ -1,6 +1,6 @@
 import { ObjectId } from 'mongodb';
-import { toPublicSessionPlayer } from '../model/index.js';
-import type { PublicSessionPlayer } from '../model/index.js';
+import { toPublicSession, toPublicSessionPlayer } from '../model/index.js';
+import type { PublicSession, PublicSessionPlayer, SessionStatus } from '../model/index.js';
 import { ensureSessionIndexes, getSessionPlayersCollection, getSessionsCollection } from './collection.js';
 import type { SessionPlayerDocument } from '../model/index.js';
 
@@ -91,4 +91,19 @@ export async function removeSessionPlayer(input: RemoveSessionPlayerInput): Prom
   await getSessionPlayersCollection().deleteOne({ _id: playerDocument._id });
 
   return { player: toPublicSessionPlayer(playerDocument), removedByHost: isHost };
+}
+
+export async function updateSessionStatus(
+  sessionId: string,
+  status: SessionStatus,
+): Promise<PublicSession | null> {
+  if (!ObjectId.isValid(sessionId)) return null;
+
+  const document = await getSessionsCollection().findOneAndUpdate(
+    { _id: new ObjectId(sessionId) },
+    { $set: { status } },
+    { returnDocument: 'after' },
+  );
+
+  return document ? toPublicSession(document) : null;
 }
