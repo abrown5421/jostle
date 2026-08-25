@@ -50,6 +50,12 @@
     },
     {
       "path": "./packages/profile-appearance"
+    },
+    {
+      "path": "./packages/integrations"
+    },
+    {
+      "path": "./packages/integrations-ui"
     }
   ],
   "compilerOptions": {}

@@ -12,10 +12,10 @@ export default defineConfig({
   server: {
     port: 5173,
     host: 'localhost',
-    // The API mounts auth and notifications routes directly (not under
-    // /api), so those are what's proxied — same-origin from the browser's
-    // point of view, which is what lets the httpOnly session cookie
-    // round-trip in dev.
+    // Mirrors how the API mounts its routers (mostly directly, e.g. /auth,
+    // /users; /api/integrations is the one exception) — same-origin from
+    // the browser's point of view, which is what lets the httpOnly session
+    // cookie round-trip in dev.
     proxy: {
       '/auth': {
         target: 'http://localhost:3333',
@@ -34,6 +34,10 @@ export default defineConfig({
         changeOrigin: true,
       },
       '/uploads': {
+        target: 'http://localhost:3333',
+        changeOrigin: true,
+      },
+      '/api': {
         target: 'http://localhost:3333',
         changeOrigin: true,
       },

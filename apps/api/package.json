@@ -89,6 +89,7 @@
   "dependencies": {
     "@jostle/auth": "*",
     "@jostle/db": "*",
+    "@jostle/integrations": "*",
     "@jostle/messaging": "*",
     "@jostle/game-sessions": "*",
     "@jostle/games": "*",
