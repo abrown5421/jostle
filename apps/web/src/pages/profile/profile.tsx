@@ -17,12 +17,13 @@ import type { UserProfileView } from '../../users/index.js';
 import { AvatarCustomizerModal } from './avatar-customizer-modal.js';
 import { BannerCustomizerModal } from './banner-customizer-modal.js';
 import { GamesTab } from './games-tab.js';
+import { IntegrationsTab } from './integrations-tab.js';
 import { NameForm } from './name-form.js';
 import { ProfileDetailsForm } from './profile-details-form.js';
 import { ProfileSidebar } from './profile-sidebar.js';
 import { PublicProfileDetails } from './public-profile-details.js';
 
-type ProfileTab = 'profile' | 'games';
+type ProfileTab = 'profile' | 'games' | 'integrations';
 
 function ProfileTabIcon() {
   return (
@@ -66,6 +67,29 @@ function GamesTabIcon() {
       />
       <circle cx="16" cy="10.5" r="0.75" fill="currentColor" />
       <circle cx="18" cy="12.5" r="0.75" fill="currentColor" />
+    </svg>
+  );
+}
+
+function IntegrationsTabIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      className="h-4 w-4"
+    >
+      <path
+        d="M8.5 12a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7ZM15.5 5a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7Z"
+        stroke="currentColor"
+        strokeWidth={1.5}
+      />
+      <path
+        d="M10.6 13.9l3.8-4.8"
+        stroke="currentColor"
+        strokeWidth={1.5}
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -213,6 +237,15 @@ export function ProfilePage() {
             >
               Games
             </TabButton>
+            {isOwner && (
+              <TabButton
+                active={activeTab === 'integrations'}
+                onClick={() => setActiveTab('integrations')}
+                icon={<IntegrationsTabIcon />}
+              >
+                Connected Accounts
+              </TabButton>
+            )}
           </div>
 
           {activeTab === 'profile' ? (
@@ -237,9 +270,11 @@ export function ProfilePage() {
             ) : (
               <PublicProfileDetails profile={profile} />
             )
-          ) : (
+          ) : activeTab === 'games' ? (
             <GamesTab />
-          )}
+          ) : isOwner ? (
+            <IntegrationsTab />
+          ) : null}
         </Container>
       </Container>
 

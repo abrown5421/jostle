@@ -55,6 +55,9 @@
       "path": "../../packages/game-catalog/tsconfig.lib.json"
     },
     {
+      "path": "../../packages/integrations-ui/tsconfig.lib.json"
+    },
+    {
       "path": "../../packages/assets/tsconfig.lib.json"
     }
   ]

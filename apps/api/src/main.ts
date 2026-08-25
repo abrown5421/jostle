@@ -7,6 +7,7 @@ import './games/seed.js';
 import { closePubSubTransport } from './messaging/pubsub-client.js';
 import { authRouter } from './routes/auth.js';
 import { gamesRouter } from './routes/games.js';
+import { integrationsApiRouter, integrationsOAuthRouter } from './routes/integrations.js';
 import { notificationsRouter } from './routes/notifications.js';
 import { sessionsRouter } from './routes/sessions.js';
 import { usersRouter } from './routes/users.js';
@@ -35,10 +36,12 @@ app.get('/health', async (req, res) => {
 });
 
 app.use('/auth', authRouter);
+app.use('/auth', integrationsOAuthRouter);
 app.use('/notifications', notificationsRouter);
 app.use('/sessions', sessionsRouter);
 app.use('/games', gamesRouter);
 app.use('/users', usersRouter);
+app.use('/api/integrations', integrationsApiRouter);
 
 const port = process.env.PORT || 3333;
 const server = app.listen(port, () => {
