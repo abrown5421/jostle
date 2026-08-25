@@ -6,3 +6,5 @@ export * from './host.js';
 export * from './join.js';
 export * from './games.js';
 export * from './settings.js';
+export * from './ipod-war-host.js';
+export * from './ipod-war-player.js';

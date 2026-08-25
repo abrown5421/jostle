@@ -93,6 +93,7 @@
     "@jostle/messaging": "*",
     "@jostle/game-sessions": "*",
     "@jostle/games": "*",
+    "@jostle/ipod-war": "*",
     "@jostle/notifications": "*",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",

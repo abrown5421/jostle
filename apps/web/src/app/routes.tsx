@@ -3,6 +3,8 @@ import {
   GamesPage,
   HomePage,
   HostPage,
+  IpodWarHostPage,
+  IpodWarPlayerPage,
   JoinPage,
   LoginPage,
   ProfilePage,
@@ -56,6 +58,22 @@ export const routes: PageRoute[] = [
   {
     path: '/host/:sessionId/settings',
     element: <SettingsPage />,
+    transition: {
+      enter: { name: 'fadeIn', duration: 400 },
+      exit: { name: 'fadeOut', duration: 300 },
+    },
+  },
+  {
+    path: '/host/:sessionId/play',
+    element: <IpodWarHostPage />,
+    transition: {
+      enter: { name: 'fadeIn', duration: 400 },
+      exit: { name: 'fadeOut', duration: 300 },
+    },
+  },
+  {
+    path: '/play/:sessionId',
+    element: <IpodWarPlayerPage />,
     transition: {
       enter: { name: 'fadeIn', duration: 400 },
       exit: { name: 'fadeOut', duration: 300 },

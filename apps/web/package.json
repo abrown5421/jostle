@@ -6,6 +6,7 @@
     "@jostle/assets": "*",
     "@jostle/game-catalog": "*",
     "@jostle/integrations-ui": "*",
+    "@jostle/ipod-war-ui": "*",
     "@jostle/lobby": "*",
     "@jostle/messaging": "*",
     "@jostle/notification-center": "*",

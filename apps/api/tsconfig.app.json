@@ -13,6 +13,9 @@
       "path": "../../packages/notifications/tsconfig.lib.json"
     },
     {
+      "path": "../../packages/ipod-war/tsconfig.lib.json"
+    },
+    {
       "path": "../../packages/games/tsconfig.lib.json"
     },
     {
@@ -22,13 +25,13 @@
       "path": "../../packages/messaging/tsconfig.lib.json"
     },
     {
+      "path": "../../packages/integrations/tsconfig.lib.json"
+    },
+    {
       "path": "../../packages/db/tsconfig.lib.json"
     },
     {
       "path": "../../packages/auth/tsconfig.lib.json"
-    },
-    {
-      "path": "../../packages/integrations/tsconfig.lib.json"
     }
   ]
 }

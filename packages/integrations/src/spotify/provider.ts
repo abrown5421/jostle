@@ -10,7 +10,15 @@ const AUTHORIZATION_ENDPOINT = 'https://accounts.spotify.com/authorize';
 const TOKEN_ENDPOINT = 'https://accounts.spotify.com/api/token';
 const PROFILE_ENDPOINT = 'https://api.spotify.com/v1/me';
 
-const SCOPES = ['user-read-email', 'user-read-private'];
+const SCOPES = [
+  'user-read-email',
+  'user-read-private',
+  'streaming',
+  'user-read-playback-state',
+  'user-modify-playback-state',
+  'playlist-read-private',
+  'playlist-read-collaborative',
+];
 
 const SPOTIFY_LOGO_URL =
   'data:image/svg+xml;utf8,' +
