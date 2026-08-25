@@ -1,3 +1,4 @@
+import { DEFAULT_BANNER_CONFIG } from '@jostle/profile-appearance';
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -26,28 +27,17 @@ describe('Banner', () => {
     container.remove();
   });
 
-  it('shows the triangle pattern placeholder when there is no image', () => {
+  it('renders the triangle mesh generated from the pattern config', () => {
     act(() => {
-      root.render(<Banner />);
+      root.render(<Banner pattern={DEFAULT_BANNER_CONFIG} />);
     });
-    expect(container.querySelector('img')).toBeNull();
-    expect(container.querySelector('svg pattern')).not.toBeNull();
-  });
-
-  it('renders the image instead of the placeholder when imageUrl is set', () => {
-    act(() => {
-      root.render(<Banner imageUrl="https://example.com/banner.png" />);
-    });
-    const img = container.querySelector('img') as HTMLImageElement;
-    expect(img).not.toBeNull();
-    expect(img.src).toBe('https://example.com/banner.png');
-    expect(container.querySelector('svg pattern')).toBeNull();
+    expect(container.querySelectorAll('svg polygon').length).toBeGreaterThan(0);
   });
 
   it('renders an edit button that calls onEdit when clicked', () => {
     const onEdit = vi.fn();
     act(() => {
-      root.render(<Banner onEdit={onEdit} />);
+      root.render(<Banner pattern={DEFAULT_BANNER_CONFIG} onEdit={onEdit} />);
     });
     const editButton = container.querySelector(
       'button[aria-label="Edit banner"]',
@@ -59,7 +49,7 @@ describe('Banner', () => {
 
   it('omits the edit button when onEdit is not provided', () => {
     act(() => {
-      root.render(<Banner />);
+      root.render(<Banner pattern={DEFAULT_BANNER_CONFIG} />);
     });
     expect(
       container.querySelector('button[aria-label="Edit banner"]'),

@@ -1,3 +1,5 @@
+import type { AvatarStyle, BannerConfig } from '@jostle/profile-appearance';
+
 // Thin fetch wrapper around apps/api's /users routes. Kept local to
 // apps/web rather than a shared package — it's tightly coupled to this
 // one API's request/response shapes and has a single consumer.
@@ -10,18 +12,21 @@ export const GENDER_OPTIONS: { value: Gender; label: string }[] = [
   { value: 'other', label: 'Other' },
 ];
 
-export interface UserProfile {
+// email and birthday are present only when the fetching viewer owns this
+// profile — the API strips them from the payload for every other viewer.
+export interface UserProfileView {
   id: string;
   firstName: string;
   lastName?: string;
-  email: string;
+  email?: string;
   bio?: string;
   /** ISO date-time string, as returned by JSON.stringify(Date) on the server. */
   birthday?: string;
   gender: Gender;
   customGender?: string;
-  avatarUrl?: string;
-  bannerUrl?: string;
+  avatarSeed?: string;
+  avatarStyle?: AvatarStyle;
+  bannerConfig: BannerConfig;
 }
 
 export interface UpdateProfileInput {
@@ -31,10 +36,13 @@ export interface UpdateProfileInput {
   birthday?: string | null;
   gender?: Gender;
   customGender?: string | null;
+  avatarSeed?: string | null;
+  avatarStyle?: AvatarStyle;
+  bannerConfig?: BannerConfig;
 }
 
 interface UserResponse {
-  user: UserProfile;
+  user: UserProfileView;
 }
 
 interface ErrorResponse {
@@ -43,7 +51,7 @@ interface ErrorResponse {
 
 const DEFAULT_ERROR = 'Something went wrong. Please try again.';
 
-async function parseUserResponse(response: Response): Promise<UserProfile> {
+async function parseUserResponse(response: Response): Promise<UserProfileView> {
   const data = (await response.json().catch(() => null)) as
     UserResponse | ErrorResponse | null;
   if (!response.ok) {
@@ -52,43 +60,23 @@ async function parseUserResponse(response: Response): Promise<UserProfile> {
   return (data as UserResponse).user;
 }
 
-export async function fetchMyProfile(): Promise<UserProfile | null> {
-  const response = await fetch('/users/me', { credentials: 'include' });
-  if (response.status === 401) return null;
+export async function fetchUserProfile(
+  userId: string,
+): Promise<UserProfileView | null> {
+  const response = await fetch(`/users/${userId}`, { credentials: 'include' });
+  if (response.status === 404) return null;
   return parseUserResponse(response);
 }
 
 export async function updateProfile(
+  userId: string,
   input: UpdateProfileInput,
-): Promise<UserProfile> {
-  const response = await fetch('/users/me', {
+): Promise<UserProfileView> {
+  const response = await fetch(`/users/${userId}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
     body: JSON.stringify(input),
   });
   return parseUserResponse(response);
-}
-
-async function uploadMedia(
-  path: string,
-  fieldName: string,
-  file: File,
-): Promise<UserProfile> {
-  const formData = new FormData();
-  formData.append(fieldName, file);
-  const response = await fetch(path, {
-    method: 'POST',
-    credentials: 'include',
-    body: formData,
-  });
-  return parseUserResponse(response);
-}
-
-export function uploadAvatar(file: File): Promise<UserProfile> {
-  return uploadMedia('/users/me/avatar', 'avatar', file);
-}
-
-export function uploadBanner(file: File): Promise<UserProfile> {
-  return uploadMedia('/users/me/banner', 'banner', file);
 }

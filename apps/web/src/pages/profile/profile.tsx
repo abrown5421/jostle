@@ -1,22 +1,28 @@
+import { fonts } from '@jostle/assets';
+import {
+  DEFAULT_AVATAR_STYLE,
+  resolveDicebearAvatarUrl,
+} from '@jostle/profile-appearance';
 import { Avatar, Banner, Container, Text, cn } from '@jostle/ui';
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { useAuth } from '../../auth/index.js';
 import {
-  fetchMyProfile,
+  fetchUserProfile,
+  isProfileOwner,
   updateProfile,
-  uploadAvatar,
-  uploadBanner,
 } from '../../users/index.js';
-import type { UserProfile } from '../../users/index.js';
-import { AccountSettings } from './account-settings.js';
-import { MediaUploadModal } from './media-upload-modal.js';
+import type { UserProfileView } from '../../users/index.js';
+import { AvatarCustomizerModal } from './avatar-customizer-modal.js';
+import { BannerCustomizerModal } from './banner-customizer-modal.js';
+import { GamesTab } from './games-tab.js';
 import { NameForm } from './name-form.js';
 import { ProfileDetailsForm } from './profile-details-form.js';
 import { ProfileSidebar } from './profile-sidebar.js';
+import { PublicProfileDetails } from './public-profile-details.js';
 
-type ProfileTab = 'profile' | 'settings';
+type ProfileTab = 'profile' | 'games';
 
 function ProfileTabIcon() {
   return (
@@ -37,7 +43,7 @@ function ProfileTabIcon() {
   );
 }
 
-function SettingsTabIcon() {
+function GamesTabIcon() {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -46,19 +52,20 @@ function SettingsTabIcon() {
       className="h-4 w-4"
     >
       <path
-        d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"
+        d="M7 7h10a4 4 0 0 1 4 4v3.5a3.5 3.5 0 0 1-6.6 1.6L14 15h-4l-.4 1.1A3.5 3.5 0 0 1 3 14.5V11a4 4 0 0 1 4-4Z"
         stroke="currentColor"
         strokeWidth={1.5}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
-        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1.08 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"
+        d="M7.5 11v2.5M6.25 12.25h2.5"
         stroke="currentColor"
         strokeWidth={1.5}
         strokeLinecap="round"
-        strokeLinejoin="round"
       />
+      <circle cx="16" cy="10.5" r="0.75" fill="currentColor" />
+      <circle cx="18" cy="12.5" r="0.75" fill="currentColor" />
     </svg>
   );
 }
@@ -92,37 +99,38 @@ function TabButton({
 }
 
 export function ProfilePage() {
-  const { id } = useParams<{ id: string }>();
+  const { userId: routeUserId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
   const {
-    user,
-    isAuthenticated,
+    user: currentUser,
     isLoading: isAuthLoading,
     refreshUser,
   } = useAuth();
 
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [profile, setProfile] = useState<UserProfileView | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [activeTab, setActiveTab] = useState<ProfileTab>('profile');
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
   const [isBannerModalOpen, setIsBannerModalOpen] = useState(false);
 
   useEffect(() => {
-    if (isAuthLoading) return;
-    if (!isAuthenticated) {
+    if (isAuthLoading || routeUserId !== 'me') return;
+    if (!currentUser) {
       navigate('/login', { replace: true });
       return;
     }
-    if (user && id !== user.id) {
-      navigate(`/profile/${user.id}`, { replace: true });
-    }
-  }, [isAuthLoading, isAuthenticated, user, id, navigate]);
+    navigate(`/profile/${currentUser.id}`, { replace: true });
+  }, [isAuthLoading, currentUser, routeUserId, navigate]);
+
+  const targetUserId =
+    routeUserId && routeUserId !== 'me' ? routeUserId : undefined;
+  const isOwner = isProfileOwner(currentUser?.id, targetUserId);
 
   useEffect(() => {
-    if (isAuthLoading || !isAuthenticated) return;
+    if (isAuthLoading || !targetUserId) return;
     let cancelled = false;
     setIsLoadingProfile(true);
-    fetchMyProfile()
+    fetchUserProfile(targetUserId)
       .then((result) => {
         if (!cancelled) setProfile(result);
       })
@@ -132,12 +140,22 @@ export function ProfilePage() {
     return () => {
       cancelled = true;
     };
-  }, [isAuthLoading, isAuthenticated]);
+  }, [isAuthLoading, targetUserId]);
 
-  if (isAuthLoading || isLoadingProfile || !profile) {
+  if (isAuthLoading || isLoadingProfile) {
     return (
       <Container direction="col" horizontalAlign="center" padding={12}>
         <Text textColor="content-secondary">Loading…</Text>
+      </Container>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <Container direction="col" horizontalAlign="center" padding={12}>
+        <Text textColor="content-secondary">
+          This user couldn&apos;t be found.
+        </Text>
       </Container>
     );
   }
@@ -150,16 +168,23 @@ export function ProfilePage() {
     <div className="w-full">
       <div className="relative">
         <Banner
-          imageUrl={profile.bannerUrl}
-          alt={`${fullName}'s banner`}
-          onEdit={() => setIsBannerModalOpen(true)}
+          pattern={profile.bannerConfig}
+          onEdit={isOwner ? () => setIsBannerModalOpen(true) : undefined}
         />
         <div className="absolute -bottom-16 left-8">
           <Avatar
-            imageUrl={profile.avatarUrl}
+            imageUrl={
+              profile.avatarSeed
+                ? resolveDicebearAvatarUrl(
+                    profile.avatarSeed,
+                    profile.avatarStyle ?? DEFAULT_AVATAR_STYLE,
+                  )
+                : undefined
+            }
             name={fullName}
             size="xl"
-            onEdit={() => setIsAvatarModalOpen(true)}
+            initialsFontFamily={fonts.primary}
+            onEdit={isOwner ? () => setIsAvatarModalOpen(true) : undefined}
           />
         </div>
       </div>
@@ -182,61 +207,68 @@ export function ProfilePage() {
               Profile
             </TabButton>
             <TabButton
-              active={activeTab === 'settings'}
-              onClick={() => setActiveTab('settings')}
-              icon={<SettingsTabIcon />}
+              active={activeTab === 'games'}
+              onClick={() => setActiveTab('games')}
+              icon={<GamesTabIcon />}
             >
-              Settings
+              Games
             </TabButton>
           </div>
 
           {activeTab === 'profile' ? (
-            <>
-              <NameForm
-                profile={profile}
-                onSave={async (input) => {
-                  const updated = await updateProfile(input);
-                  setProfile(updated);
-                  await refreshUser();
-                }}
-              />
-              <ProfileDetailsForm
-                profile={profile}
-                onSave={async (input) => {
-                  const updated = await updateProfile(input);
-                  setProfile(updated);
-                }}
-              />
-            </>
+            isOwner ? (
+              <>
+                <NameForm
+                  profile={profile}
+                  onSave={async (input) => {
+                    const updated = await updateProfile(profile.id, input);
+                    setProfile(updated);
+                    await refreshUser();
+                  }}
+                />
+                <ProfileDetailsForm
+                  profile={profile}
+                  onSave={async (input) => {
+                    const updated = await updateProfile(profile.id, input);
+                    setProfile(updated);
+                  }}
+                />
+              </>
+            ) : (
+              <PublicProfileDetails profile={profile} />
+            )
           ) : (
-            <AccountSettings profile={profile} />
+            <GamesTab />
           )}
         </Container>
       </Container>
 
-      <MediaUploadModal
-        open={isAvatarModalOpen}
-        onClose={() => setIsAvatarModalOpen(false)}
-        title="Update Avatar"
-        currentImageUrl={profile.avatarUrl}
-        previewShape="circle"
-        onUpload={async (file) => {
-          const updated = await uploadAvatar(file);
-          setProfile(updated);
-          await refreshUser();
-        }}
-      />
-      <MediaUploadModal
-        open={isBannerModalOpen}
-        onClose={() => setIsBannerModalOpen(false)}
-        title="Update Banner"
-        currentImageUrl={profile.bannerUrl}
-        previewShape="rect"
-        onUpload={async (file) => {
-          const updated = await uploadBanner(file);
-          setProfile(updated);
-        }}
-      />
+      {isOwner && (
+        <>
+          <AvatarCustomizerModal
+            open={isAvatarModalOpen}
+            onClose={() => setIsAvatarModalOpen(false)}
+            currentSeed={profile.avatarSeed}
+            currentStyle={profile.avatarStyle}
+            name={fullName}
+            initialsFontFamily={fonts.primary}
+            onSave={async (input) => {
+              const updated = await updateProfile(profile.id, input);
+              setProfile(updated);
+              await refreshUser();
+            }}
+          />
+          <BannerCustomizerModal
+            open={isBannerModalOpen}
+            onClose={() => setIsBannerModalOpen(false)}
+            currentConfig={profile.bannerConfig}
+            onSave={async (bannerConfig) => {
+              const updated = await updateProfile(profile.id, { bannerConfig });
+              setProfile(updated);
+            }}
+          />
+        </>
+      )}
     </div>
   );
 }

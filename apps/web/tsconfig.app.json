@@ -37,10 +37,7 @@
       "path": "../../packages/router/tsconfig.lib.json"
     },
     {
-      "path": "../../packages/assets/tsconfig.lib.json"
-    },
-    {
-      "path": "../../packages/messaging/tsconfig.lib.json"
+      "path": "../../packages/profile-appearance/tsconfig.lib.json"
     },
     {
       "path": "../../packages/presence/tsconfig.lib.json"
@@ -49,10 +46,16 @@
       "path": "../../packages/notification-center/tsconfig.lib.json"
     },
     {
+      "path": "../../packages/messaging/tsconfig.lib.json"
+    },
+    {
       "path": "../../packages/lobby/tsconfig.lib.json"
     },
     {
       "path": "../../packages/game-catalog/tsconfig.lib.json"
+    },
+    {
+      "path": "../../packages/assets/tsconfig.lib.json"
     }
   ]
 }

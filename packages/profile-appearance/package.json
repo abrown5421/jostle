@@ -1,5 +1,5 @@
 {
-  "name": "@jostle/media-storage",
+  "name": "@jostle/profile-appearance",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -13,5 +13,8 @@
     },
     "./package.json": "./package.json"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "devDependencies": {
+    "vitest": "~3.2.7"
+  }
 }

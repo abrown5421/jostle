@@ -1,3 +1,5 @@
+import type { AvatarStyle } from '@jostle/profile-appearance';
+
 // Thin fetch wrapper around apps/api's /auth routes. Kept local to
 // apps/web rather than a shared package — it's tightly coupled to this
 // one API's request/response shapes and has a single consumer.
@@ -6,7 +8,8 @@ export interface AuthUser {
   firstName: string;
   lastName?: string;
   email: string;
-  avatarUrl?: string;
+  avatarSeed?: string;
+  avatarStyle?: AvatarStyle;
 }
 
 export interface SignupInput {

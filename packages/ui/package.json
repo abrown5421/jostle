@@ -17,6 +17,7 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
+    "@jostle/profile-appearance": "*",
     "@tailwindcss/cli": "^4.3.3",
     "animate.css": "^4.1.1",
     "clsx": "^2.1.1",

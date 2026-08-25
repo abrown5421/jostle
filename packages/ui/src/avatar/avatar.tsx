@@ -18,6 +18,8 @@ export interface AvatarProps extends BlowoffProps, AnimatableProps {
   name?: string;
   /** @default 'md' */
   size?: AvatarSize;
+  /** CSS font-family for the fallback initials, e.g. from @jostle/assets fonts. */
+  initialsFontFamily?: string;
   /** When set, the whole avatar becomes a click target that shows a pencil overlay on hover. */
   onEdit?: () => void;
   editLabel?: string;
@@ -30,6 +32,7 @@ export function Avatar({
   imageUrl,
   name = '',
   size = 'md',
+  initialsFontFamily,
   onEdit,
   editLabel = 'Edit avatar',
   statusIndicator,
@@ -50,7 +53,13 @@ export function Avatar({
           animationProp.className,
           className,
         )}
-        style={{ ...animationProp.style, ...style }}
+        style={{
+          ...animationProp.style,
+          ...(initialsFontFamily
+            ? { fontFamily: initialsFontFamily }
+            : undefined),
+          ...style,
+        }}
       >
         {imageUrl ? (
           <img

@@ -5,6 +5,11 @@ import {
   useNotificationCenter,
 } from '@jostle/notification-center';
 import { PresenceLight, useLocalPresenceBroadcaster } from '@jostle/presence';
+import {
+  DEFAULT_AVATAR_STYLE,
+  resolveDicebearAvatarUrl,
+} from '@jostle/profile-appearance';
+import type { AvatarStyle } from '@jostle/profile-appearance';
 import { AnimatedRoutes } from '@jostle/router';
 import { Navbar } from '@jostle/ui';
 import type { UserProfile } from '@jostle/ui';
@@ -24,12 +29,18 @@ function toProfile(user: {
   id: string;
   firstName: string;
   lastName?: string;
-  avatarUrl?: string;
+  avatarSeed?: string;
+  avatarStyle?: AvatarStyle;
 }): UserProfile {
   return {
     id: user.id,
     name: [user.firstName, user.lastName].filter(Boolean).join(' '),
-    avatarUrl: user.avatarUrl,
+    avatarUrl: user.avatarSeed
+      ? resolveDicebearAvatarUrl(
+          user.avatarSeed,
+          user.avatarStyle ?? DEFAULT_AVATAR_STYLE,
+        )
+      : undefined,
   };
 }
 
@@ -86,9 +97,10 @@ function AppShell() {
         logoSrc={images.logo}
         appName="Jostle"
         appNameFontFamily={fonts.primary}
+        avatarInitialsFontFamily={fonts.primary}
         navLinks={NAV_LINKS}
         profileLinks={
-          profile ? [{ label: 'Profile', href: `/profile/${profile.id}` }] : []
+          profile ? [{ label: 'Profile', href: '/profile/me' }] : []
         }
         isAuthenticated={isAuthenticated}
         user={profile}

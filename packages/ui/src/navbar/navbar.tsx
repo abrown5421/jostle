@@ -13,10 +13,12 @@ function AvatarButton({
   user,
   badge,
   onClick,
+  initialsFontFamily,
 }: {
   user: UserProfile;
   badge?: ReactNode;
   onClick: () => void;
+  initialsFontFamily?: string;
 }) {
   return (
     <span className="relative inline-flex">
@@ -25,6 +27,9 @@ function AvatarButton({
         onClick={onClick}
         aria-label={`Open menu for ${user.name}`}
         className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary text-sm font-semibold text-slate-100"
+        style={
+          initialsFontFamily ? { fontFamily: initialsFontFamily } : undefined
+        }
       >
         {user.avatarUrl ? (
           <img
@@ -88,6 +93,7 @@ export function Navbar({
   logoAlt,
   appName,
   appNameFontFamily,
+  avatarInitialsFontFamily,
   navLinks,
   profileLinks,
   isAuthenticated,
@@ -162,6 +168,7 @@ export function Navbar({
                 user={user}
                 badge={avatarBadge}
                 onClick={() => setDrawerOpen(true)}
+                initialsFontFamily={avatarInitialsFontFamily}
               />
             </>
           )

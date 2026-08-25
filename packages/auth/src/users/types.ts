@@ -1,3 +1,4 @@
+import type { AvatarStyle, BannerConfig } from '@jostle/profile-appearance';
 import type { ObjectId } from 'mongodb';
 
 export const GENDER_VALUES = [
@@ -23,8 +24,10 @@ export interface UserDocument {
   birthday?: Date;
   gender: Gender;
   customGender?: string;
-  avatarUrl?: string;
-  bannerUrl?: string;
+  /** DiceBear seed + style. Absent until the user customizes their avatar — falls back to a letter avatar. */
+  avatarSeed?: string;
+  avatarStyle?: AvatarStyle;
+  bannerConfig: BannerConfig;
 }
 
 /** Safe to send to the client. */
@@ -37,6 +40,20 @@ export interface PublicUser {
   birthday?: Date;
   gender: Gender;
   customGender?: string;
-  avatarUrl?: string;
-  bannerUrl?: string;
+  avatarSeed?: string;
+  avatarStyle?: AvatarStyle;
+  bannerConfig: BannerConfig;
+}
+
+/** Safe to send to a viewer who is not the profile owner — omits email and birthday. */
+export interface PublicUserProfileView {
+  id: string;
+  firstName: string;
+  lastName?: string;
+  bio?: string;
+  gender: Gender;
+  customGender?: string;
+  avatarSeed?: string;
+  avatarStyle?: AvatarStyle;
+  bannerConfig: BannerConfig;
 }

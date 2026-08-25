@@ -1,20 +1,11 @@
 import { Container, Text } from '@jostle/ui';
 import type { ReactNode } from 'react';
-import { GENDER_OPTIONS } from '../../users/index.js';
-import type { UserProfile } from '../../users/index.js';
 import { formatBirthdayDisplay } from '../../users/birthday.js';
+import { genderDisplay } from '../../users/gender-display.js';
+import type { UserProfileView } from '../../users/index.js';
 
 export interface ProfileSidebarProps {
-  profile: UserProfile;
-}
-
-function genderDisplay(profile: UserProfile): string | null {
-  if (profile.gender === 'prefer_not_to_say') return null;
-  if (profile.gender === 'other') return profile.customGender || null;
-  return (
-    GENDER_OPTIONS.find((option) => option.value === profile.gender)?.label ??
-    null
-  );
+  profile: UserProfileView;
 }
 
 function SidebarRow({ icon, label }: { icon: ReactNode; label: string }) {
@@ -99,18 +90,12 @@ export function ProfileSidebar({ profile }: ProfileSidebarProps) {
         <Text fontSize="xl" fontWeight="bold" textColor="content-primary">
           {fullName}
         </Text>
-        <Text fontSize="sm" textColor="content-secondary">
-          {profile.email}
-        </Text>
-      </Container>
-
-      {profile.bio && (
-        <Container padding={6} className="border-t border-surface-tertiary">
-          <Text fontSize="sm" textColor="content-primary">
-            {profile.bio}
+        {profile.email && (
+          <Text fontSize="sm" textColor="content-secondary">
+            {profile.email}
           </Text>
-        </Container>
-      )}
+        )}
+      </Container>
 
       {birthdayDisplay && (
         <SidebarRow icon={<CalendarIcon />} label={birthdayDisplay} />

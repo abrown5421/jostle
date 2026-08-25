@@ -49,7 +49,7 @@
       "path": "./packages/game-catalog"
     },
     {
-      "path": "./packages/media-storage"
+      "path": "./packages/profile-appearance"
     }
   ],
   "compilerOptions": {}

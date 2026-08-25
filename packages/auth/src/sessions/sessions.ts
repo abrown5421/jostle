@@ -3,7 +3,7 @@ import { randomBytes } from 'node:crypto';
 import { ObjectId } from 'mongodb';
 import type { Collection } from 'mongodb';
 import { findUserById, toPublicUser } from '../users/index.js';
-import type { PublicUser, ToPublicUserOptions } from '../users/index.js';
+import type { PublicUser } from '../users/index.js';
 import type { SessionDocument } from './types.js';
 
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -44,7 +44,6 @@ export async function createSession(userId: string): Promise<string> {
 
 export async function getUserForSessionToken(
   token: string,
-  options: ToPublicUserOptions = {},
 ): Promise<PublicUser | null> {
   const session = await getSessionsCollection().findOne({
     token,
@@ -53,7 +52,7 @@ export async function getUserForSessionToken(
   if (!session) return null;
 
   const user = await findUserById(session.userId.toString());
-  return user ? toPublicUser(user, options) : null;
+  return user ? toPublicUser(user) : null;
 }
 
 export async function deleteSession(token: string): Promise<void> {

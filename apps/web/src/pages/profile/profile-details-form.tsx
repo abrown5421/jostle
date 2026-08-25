@@ -2,7 +2,7 @@ import { Button, Container, Input, Select, Text } from '@jostle/ui';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { GENDER_OPTIONS } from '../../users/index.js';
-import type { Gender, UserProfile } from '../../users/index.js';
+import type { Gender, UserProfileView } from '../../users/index.js';
 import { toDateInputValue } from '../../users/birthday.js';
 
 export interface ProfileDetailsInput {
@@ -13,7 +13,7 @@ export interface ProfileDetailsInput {
 }
 
 export interface ProfileDetailsFormProps {
-  profile: UserProfile;
+  profile: UserProfileView;
   onSave: (input: ProfileDetailsInput) => Promise<void>;
 }
 

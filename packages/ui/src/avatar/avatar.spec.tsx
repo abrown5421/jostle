@@ -66,4 +66,14 @@ describe('Avatar', () => {
       container.querySelector('button[aria-label="Edit avatar"]'),
     ).toBeNull();
   });
+
+  it('applies initialsFontFamily to the fallback initials', () => {
+    act(() => {
+      root.render(
+        <Avatar name="Super Admin" initialsFontFamily="Jostle Primary" />,
+      );
+    });
+    const span = container.querySelector('span > span') as HTMLSpanElement;
+    expect(span.style.fontFamily).toBe('Jostle Primary');
+  });
 });

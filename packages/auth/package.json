@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@jostle/db": "*",
-    "@jostle/media-storage": "*",
+    "@jostle/profile-appearance": "*",
     "bcryptjs": "^3.0.3",
     "mongodb": "^7.5.0"
   }

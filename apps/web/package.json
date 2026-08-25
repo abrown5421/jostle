@@ -9,6 +9,7 @@
     "@jostle/messaging": "*",
     "@jostle/notification-center": "*",
     "@jostle/presence": "*",
+    "@jostle/profile-appearance": "*",
     "@jostle/router": "*",
     "@jostle/ui": "*",
     "react-router": "^8.3.0"

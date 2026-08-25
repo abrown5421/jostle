@@ -8,7 +8,6 @@ import {
   InvalidCredentialsError,
 } from '@jostle/auth';
 import { Router } from 'express';
-import { assetBaseUrl } from '../media/storage.js';
 
 export const SESSION_COOKIE = 'jostle_session';
 
@@ -64,7 +63,7 @@ authRouter.post('/login', async (req, res) => {
   }
 
   try {
-    const user = await authenticate(email, password, { assetBaseUrl });
+    const user = await authenticate(email, password);
     const token = await createSession(user.id);
     res.cookie(SESSION_COOKIE, token, COOKIE_OPTIONS);
     res.json({ user });
@@ -92,7 +91,7 @@ authRouter.get('/me', async (req, res) => {
     return;
   }
 
-  const user = await getUserForSessionToken(token, { assetBaseUrl });
+  const user = await getUserForSessionToken(token);
   if (!user) {
     res.status(401).json({ error: 'Not authenticated.' });
     return;

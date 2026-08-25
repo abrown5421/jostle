@@ -1,9 +1,13 @@
-import { resolveStoredMediaUrl } from '@jostle/media-storage';
+import { DEFAULT_BANNER_CONFIG } from '@jostle/profile-appearance';
 import { ObjectId } from 'mongodb';
 import { hashPassword } from '../password/index.js';
 import { getUsersCollection } from './collection.js';
 import { DEFAULT_GENDER } from './types.js';
-import type { PublicUser, UserDocument } from './types.js';
+import type {
+  PublicUser,
+  PublicUserProfileView,
+  UserDocument,
+} from './types.js';
 
 // A unique index makes "no two users share an email" a real DB-level
 // guarantee instead of a check-then-insert race condition. Idempotent —
@@ -16,14 +20,7 @@ async function ensureIndexes(): Promise<void> {
   indexesEnsured = true;
 }
 
-export interface ToPublicUserOptions {
-  assetBaseUrl?: string;
-}
-
-export function toPublicUser(
-  user: UserDocument,
-  options: ToPublicUserOptions = {},
-): PublicUser {
+export function toPublicUser(user: UserDocument): PublicUser {
   return {
     id: user._id.toString(),
     firstName: user.firstName,
@@ -33,13 +30,15 @@ export function toPublicUser(
     birthday: user.birthday,
     gender: user.gender ?? DEFAULT_GENDER,
     customGender: user.customGender,
-    avatarUrl: options.assetBaseUrl
-      ? resolveStoredMediaUrl(user.avatarUrl, options.assetBaseUrl)
-      : user.avatarUrl,
-    bannerUrl: options.assetBaseUrl
-      ? resolveStoredMediaUrl(user.bannerUrl, options.assetBaseUrl)
-      : user.bannerUrl,
+    avatarSeed: user.avatarSeed,
+    avatarStyle: user.avatarStyle,
+    bannerConfig: user.bannerConfig ?? DEFAULT_BANNER_CONFIG,
   };
+}
+
+export function toPublicProfileView(user: PublicUser): PublicUserProfileView {
+  const { email: _email, birthday: _birthday, ...profileView } = user;
+  return profileView;
 }
 
 export class EmailAlreadyInUseError extends Error {
@@ -67,6 +66,7 @@ export async function createUser(input: CreateUserInput): Promise<PublicUser> {
     passwordHash: await hashPassword(input.password),
     createdAt: new Date(),
     gender: DEFAULT_GENDER,
+    bannerConfig: DEFAULT_BANNER_CONFIG,
   };
 
   try {

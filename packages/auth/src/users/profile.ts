@@ -1,3 +1,9 @@
+import {
+  isValidAvatarSeed,
+  isValidAvatarStyle,
+  isValidBannerConfig,
+} from '@jostle/profile-appearance';
+import type { AvatarStyle, BannerConfig } from '@jostle/profile-appearance';
 import { ObjectId } from 'mongodb';
 import type { UpdateFilter } from 'mongodb';
 import { getUsersCollection } from './collection.js';
@@ -169,33 +175,70 @@ export async function updateUserProfile(
   );
 }
 
-export async function setUserAvatarUrl(
-  userId: string,
-  avatarUrl: string | null,
-): Promise<UserDocument | null> {
-  return setUserMediaUrl(userId, 'avatarUrl', avatarUrl);
+export interface SetUserAvatarInput {
+  seed: unknown;
+  style: unknown;
 }
 
-export async function setUserBannerUrl(
+export async function setUserAvatar(
   userId: string,
-  bannerUrl: string | null,
-): Promise<UserDocument | null> {
-  return setUserMediaUrl(userId, 'bannerUrl', bannerUrl);
-}
-
-async function setUserMediaUrl(
-  userId: string,
-  field: 'avatarUrl' | 'bannerUrl',
-  value: string | null,
+  avatar: SetUserAvatarInput | null,
 ): Promise<UserDocument | null> {
   if (!ObjectId.isValid(userId)) return null;
 
   const update: UpdateFilter<UserDocument> =
-    value === null ? { $unset: { [field]: '' } } : { $set: { [field]: value } };
+    avatar === null
+      ? { $unset: { avatarSeed: '', avatarStyle: '' } }
+      : {
+          $set: {
+            avatarSeed: sanitizeAvatarSeed(avatar.seed),
+            avatarStyle: sanitizeAvatarStyle(avatar.style),
+          },
+        };
 
   return getUsersCollection().findOneAndUpdate(
     { _id: new ObjectId(userId) },
     update,
     { returnDocument: 'after' },
   );
+}
+
+export async function setUserBannerConfig(
+  userId: string,
+  bannerConfig: unknown,
+): Promise<UserDocument | null> {
+  if (!ObjectId.isValid(userId)) return null;
+
+  return getUsersCollection().findOneAndUpdate(
+    { _id: new ObjectId(userId) },
+    { $set: { bannerConfig: sanitizeBannerConfig(bannerConfig) } },
+    { returnDocument: 'after' },
+  );
+}
+
+function sanitizeAvatarSeed(value: unknown): string {
+  if (!isValidAvatarSeed(value)) {
+    throw new InvalidProfileInputError(
+      'avatarSeed must be a non-empty string of 64 characters or fewer.',
+    );
+  }
+  return value.trim();
+}
+
+function sanitizeAvatarStyle(value: unknown): AvatarStyle {
+  if (!isValidAvatarStyle(value)) {
+    throw new InvalidProfileInputError(
+      'avatarStyle must be one of the supported DiceBear styles.',
+    );
+  }
+  return value;
+}
+
+function sanitizeBannerConfig(value: unknown): BannerConfig {
+  if (!isValidBannerConfig(value)) {
+    throw new InvalidProfileInputError(
+      'bannerConfig must include a valid cellSize, variance, and non-empty xColors/yColors hex color lists.',
+    );
+  }
+  return value;
 }

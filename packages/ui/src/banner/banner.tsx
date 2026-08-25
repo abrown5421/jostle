@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import type { BannerConfig } from '@jostle/profile-appearance';
 import type { Ref } from 'react';
 import { useAnimationProp } from '../animation/index.js';
 import { cn, mergeRefs } from '../shared/index.js';
@@ -6,16 +6,14 @@ import type { AnimatableProps, BlowoffProps } from '../shared/index.js';
 import { TrianglePattern } from './triangle-pattern.js';
 
 export interface BannerProps extends BlowoffProps, AnimatableProps {
-  imageUrl?: string;
-  alt?: string;
+  pattern: BannerConfig;
   onEdit?: () => void;
   editLabel?: string;
   ref?: Ref<HTMLDivElement>;
 }
 
 export function Banner({
-  imageUrl,
-  alt = '',
+  pattern,
   onEdit,
   editLabel = 'Edit banner',
   animation,
@@ -23,7 +21,6 @@ export function Banner({
   style,
   ref,
 }: BannerProps) {
-  const patternId = useId();
   const animationProp = useAnimationProp(animation);
 
   return (
@@ -36,11 +33,7 @@ export function Banner({
       )}
       style={{ ...animationProp.style, ...style }}
     >
-      {imageUrl ? (
-        <img src={imageUrl} alt={alt} className="h-full w-full object-cover" />
-      ) : (
-        <TrianglePattern patternId={patternId} />
-      )}
+      <TrianglePattern pattern={pattern} />
 
       {onEdit && (
         <button

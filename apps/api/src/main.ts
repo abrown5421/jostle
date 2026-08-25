@@ -1,11 +1,9 @@
 import { checkDatabaseHealth, closeClient } from '@jostle/db';
-import { MEDIA_URL_PREFIX } from '@jostle/media-storage';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
 import * as path from 'path';
 import './games/seed.js';
-import { uploadsRoot } from './media/storage.js';
 import { closePubSubTransport } from './messaging/pubsub-client.js';
 import { authRouter } from './routes/auth.js';
 import { gamesRouter } from './routes/games.js';
@@ -25,7 +23,6 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use('/assets', express.static(path.join(import.meta.dirname, 'assets')));
-app.use(`/${MEDIA_URL_PREFIX}`, express.static(uploadsRoot));
 
 app.get('/api', (req, res) => {
   res.send({ message: 'Welcome to api!' });

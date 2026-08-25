@@ -24,6 +24,8 @@ export interface NavbarProps extends BlowoffProps, AnimatableProps {
   appName: string;
   /** CSS font-family for the appName text, e.g. from @jostle/assets fonts. */
   appNameFontFamily?: string;
+  /** CSS font-family for the avatar's fallback initials, e.g. from @jostle/assets fonts. */
+  avatarInitialsFontFamily?: string;
   /** Primary site links — desktop-visible at lg, drawer-only below it. */
   navLinks: NavLinkItem[];
   /** Links shown in the drawer only while authenticated (e.g. Profile). */

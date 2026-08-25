@@ -2,9 +2,9 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig(() => ({
   root: __dirname,
-  cacheDir: '../../node_modules/.vite/packages/media-storage',
+  cacheDir: '../../node_modules/.vite/packages/profile-appearance',
   test: {
-    name: '@jostle/media-storage',
+    name: '@jostle/profile-appearance',
     watch: false,
     globals: true,
     environment: 'node',

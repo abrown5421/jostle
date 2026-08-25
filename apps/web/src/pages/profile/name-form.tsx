@@ -1,10 +1,10 @@
 import { Button, Container, Input, Text } from '@jostle/ui';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import type { UserProfile } from '../../users/index.js';
+import type { UserProfileView } from '../../users/index.js';
 
 export interface NameFormProps {
-  profile: UserProfile;
+  profile: UserProfileView;
   onSave: (input: {
     firstName: string;
     lastName: string | null;

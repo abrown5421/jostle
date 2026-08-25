@@ -22,9 +22,6 @@
       "path": "../../packages/messaging/tsconfig.lib.json"
     },
     {
-      "path": "../../packages/media-storage/tsconfig.lib.json"
-    },
-    {
       "path": "../../packages/db/tsconfig.lib.json"
     },
     {
