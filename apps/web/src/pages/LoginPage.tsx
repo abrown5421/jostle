@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { alert, Box, Button, Input, PasswordInput, Text, useNavigateWithTransition } from '@inithium/ui';
+import { alert, Box, Button, Input, PasswordInput, Text, useNavigateWithTransition, useWhimsicalFieldColors } from '@inithium/ui';
 import { useLoginMutation } from '@inithium/api-client';
 import { authStore } from '../app/authStore';
 
@@ -45,6 +45,8 @@ export const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  // A fresh mix of theme colors per visit, one per field, for a bit of whimsy.
+  const fieldColors = useWhimsicalFieldColors(2);
 
   const handleSubmit = async () => {
     const validationErrors = validate(email, password);
@@ -91,7 +93,7 @@ export const LoginPage = () => {
           onChange={(event) => setEmail(event.target.value)}
           error={Boolean(fieldErrors.email)}
           helperText={fieldErrors.email}
-          color={{ color: 'primary', intensity: 500}}
+          color={fieldColors[0]}
         />
         <PasswordInput
           label="Password"
@@ -100,6 +102,7 @@ export const LoginPage = () => {
           onChange={(event) => setPassword(event.target.value)}
           error={Boolean(fieldErrors.password)}
           helperText={fieldErrors.password}
+          color={fieldColors[1]}
         />
         <Button onClick={handleSubmit} variant={{ kind: 'filled', color: 'primary' }} disabled={isLoading}>
           {isLoading ? 'Signing in…' : 'Sign in'}

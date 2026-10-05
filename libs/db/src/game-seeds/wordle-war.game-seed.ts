@@ -1,12 +1,12 @@
 import type { CreateGameInput } from '../contracts/game.contract';
 
-// No art yet - the catalogue card falls back to `icon`.
-const wordleWithFriendsGameSeed: CreateGameInput = {
-  slug: 'wordle-with-friends',
-  title: 'Wordle W Friends',
+const wordleWarGameSeed: CreateGameInput = {
+  slug: 'wordle-war',
+  title: 'Wordle War',
   tagline: 'Everyone gets a secret word. Crack yours first.',
   description:
     'Like the daily word puzzle, but head-to-head. Each player is dealt their own random secret word and races to solve it with Wordle-style hints. Solving in fewer guesses beats solving fast - a player who gets it in one outranks a player who took three.',
+  imageUrl: '/games/wordle-war-logo.png',
   icon: 'GridFour',
   minPlayers: 2,
   maxPlayers: 20,
@@ -43,8 +43,8 @@ const wordleWithFriendsGameSeed: CreateGameInput = {
   ],
   requirements: [],
   order: 40,
-  seedVersion: 2,
+  seedVersion: 3,
   isPublished: true,
 };
 
-export default wordleWithFriendsGameSeed;
+export default wordleWarGameSeed;

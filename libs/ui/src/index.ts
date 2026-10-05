@@ -232,6 +232,7 @@ export {
   createRandomAvatarConfig,
   useNavigateWithTransition,
   useElementSize,
+  useWhimsicalFieldColors,
   ColorPicker,
   ColorSpecPicker,
   AutoIncrementingList,

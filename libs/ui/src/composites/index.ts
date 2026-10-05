@@ -19,6 +19,8 @@ export { useNavigateWithTransition } from './useNavigateWithTransition';
 export { useElementSize } from './useElementSize';
 export type { ElementSize, UseElementSizeResult } from './useElementSize';
 
+export { useWhimsicalFieldColors } from './useWhimsicalFieldColors';
+
 export { ColorPicker } from './ColorPicker';
 export type { ColorPickerProps } from './ColorPicker';
 

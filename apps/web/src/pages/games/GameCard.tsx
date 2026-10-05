@@ -30,6 +30,7 @@ export const GameCard = ({ game, action, onLearnMore, isSelected = false }: Game
     <Card
       media={<GameMedia game={game} />}
       borderColor={isSelected ? { color: 'primary', intensity: 500 } : SURFACE_BORDER}
+      bodyClassName="flex flex-1 flex-col"
       className={mergeClassNames(
         'flex flex-none flex-col sm:w-72',
         resolveColorClass('bg', SURFACE_BG),
@@ -37,7 +38,9 @@ export const GameCard = ({ game, action, onLearnMore, isSelected = false }: Game
         isSelected && 'ring-2 ring-primary-500',
       )}
     >
-      <Box flex={{ direction: 'col', gap: 12 }}>
+      {/* flex-1 + the buttons' mt-auto pin the buttons to the card's bottom, so they line up
+          across a row of cards whatever the length of each title or tagline. */}
+      <Box flex={{ direction: 'col', gap: 12 }} className="flex-1">
         <Box flex={{ direction: 'col', gap: 8 }}>
           <Box flex={{ direction: 'row', justify: 'between', align: 'center', gap: 8 }}>
             <Text as="h3" className="text-lg font-bold" textColor={SURFACE_TEXT}>
@@ -74,13 +77,13 @@ export const GameCard = ({ game, action, onLearnMore, isSelected = false }: Game
           </Box>
         </Box>
 
-        <Box flex={{ direction: 'row', gap: 8 }}>
-          <Button {...SECONDARY_BUTTON_PROPS} className="flex-1" onClick={() => onLearnMore(game)}>
+        <Box flex={{ direction: 'col', gap: 8 }} className="mt-auto">
+          <Button {...SECONDARY_BUTTON_PROPS} onClick={() => onLearnMore(game)}>
             Learn more
           </Button>
           <Button
             variant={{ kind: 'filled', color: 'primary' }}
-            className="flex-1 disabled:cursor-not-allowed disabled:opacity-50"
+            className="disabled:cursor-not-allowed disabled:opacity-50"
             onClick={() => action.onClick(game)}
             disabled={action.disabled}
           >

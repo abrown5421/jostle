@@ -12,6 +12,9 @@ export interface CardProps {
   readonly padding?: SpacingProp;
   readonly onClick?: () => void;
   readonly className?: string;
+  // Applied to the padded body wrapping `children` (e.g. "flex-1" so a fixed-height card's body
+  // fills the space left under its media).
+  readonly bodyClassName?: string;
 }
 
 const DEFAULT_BORDER_COLOR: ColorSpec = { color: 'surface', intensity: 300 };
@@ -29,6 +32,7 @@ export const Card = ({
   padding = DEFAULT_PADDING,
   onClick,
   className,
+  bodyClassName,
 }: CardProps) => {
   const Component: ElementType = onClick ? 'button' : 'div';
 
@@ -42,7 +46,7 @@ export const Card = ({
   return (
     <Component className={classes} onClick={onClick} type={onClick ? 'button' : undefined}>
       {media}
-      <Box padding={padding}>{children}</Box>
+      <Box padding={padding} className={bodyClassName}>{children}</Box>
     </Component>
   );
 };
