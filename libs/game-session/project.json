@@ -1,0 +1,31 @@
+{
+  "name": "game-session",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/game-session/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/game-session",
+        "main": "libs/game-session/src/index.ts",
+        "tsConfig": "libs/game-session/tsconfig.lib.json",
+        "assets": ["libs/game-session/*.md"]
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run",
+        "cwd": "libs/game-session"
+      }
+    },
+    "type-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p libs/game-session/tsconfig.lib.json"
+      }
+    }
+  }
+}

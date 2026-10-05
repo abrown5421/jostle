@@ -1,0 +1,10 @@
+{
+  "name": "@inithium/game-session",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}
