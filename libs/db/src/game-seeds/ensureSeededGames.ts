@@ -4,6 +4,16 @@ import { createGame, findGameBySlug, updateGame } from '../index';
 const isDuplicateKeyError = (error: unknown): boolean =>
   typeof error === 'object' && error !== null && 'code' in error && (error as { code: unknown }).code === 11000;
 
+// A game whose slug changed in a rebrand: current slug -> the slug a database may still hold it
+// under. The stored record is found by its old slug and rewritten (slug included) by the seed, so
+// a rename never leaves an orphaned duplicate in the catalogue.
+const previousSlugs: Record<string, string> = {
+  'wordle-war': 'wordle-with-friends',
+};
+
+const findSeededGame = async (slug: string) =>
+  (await findGameBySlug(slug)) ?? (previousSlugs[slug] ? await findGameBySlug(previousSlugs[slug]) : null);
+
 // Called once at API startup (apps/api/src/main.ts, alongside ensureSeededPages). Unlike pages,
 // games are versioned: a missing game is created, and a stored one whose seedVersion is behind its
 // seed's is overwritten with the seed - that's how a changed setting or reworded rule reaches a
@@ -11,7 +21,7 @@ const isDuplicateKeyError = (error: unknown): boolean =>
 // every boot after the first.
 export const ensureSeededGames = async (): Promise<void> => {
   for (const seed of gameSeeds) {
-    const existing = await findGameBySlug(seed.slug);
+    const existing = await findSeededGame(seed.slug);
     if (existing) {
       if (existing.seedVersion >= seed.seedVersion) continue;
       await updateGame(existing.id, seed);

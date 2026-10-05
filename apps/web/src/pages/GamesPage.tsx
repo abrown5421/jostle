@@ -82,11 +82,6 @@ export const GamesPage = () => {
         <Text as="h1" className="text-3xl font-bold" textColor={SURFACE_TEXT}>
           {activeSession ? 'Choose a game' : 'Games'}
         </Text>
-        <Text as="p" textColor={SURFACE_TEXT}>
-          {activeSession
-            ? 'Pick what your lobby plays next.'
-            : 'Pick a game to host. Players join from their own phones - no account needed.'}
-        </Text>
       </Box>
 
       {activeSession && (

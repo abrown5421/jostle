@@ -2,7 +2,7 @@ import type { CreateGameInput } from '../contracts/game.contract';
 import ipodWarGameSeed from './ipod-war.game-seed';
 import pointOfHueGameSeed from './point-of-hue.game-seed';
 import fishbowlGameSeed from './fishbowl.game-seed';
-import wordleWithFriendsGameSeed from './wordle-with-friends.game-seed';
+import wordleWarGameSeed from './wordle-war.game-seed';
 // inithium:anchor:imports
 
 // Every game the catalogue should always hold a record for, reconciled once at API startup by
@@ -13,6 +13,6 @@ export const gameSeeds: CreateGameInput[] = [
   ipodWarGameSeed,
   pointOfHueGameSeed,
   fishbowlGameSeed,
-  wordleWithFriendsGameSeed,
+  wordleWarGameSeed,
   // inithium:anchor:seeds
 ];

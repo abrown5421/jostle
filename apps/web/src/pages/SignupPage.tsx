@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { alert, Box, Button, Input, PasswordInput, Text, useNavigateWithTransition } from '@inithium/ui';
+import { alert, Box, Button, Input, PasswordInput, Text, useNavigateWithTransition, useWhimsicalFieldColors } from '@inithium/ui';
 import { useRegisterMutation } from '@inithium/api-client';
 import { authStore } from '../app/authStore';
 
@@ -45,6 +45,8 @@ export const SignupPage = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  // A fresh mix of theme colors per visit, one per field, for a bit of whimsy.
+  const fieldColors = useWhimsicalFieldColors(5);
 
   const handleSubmit = async () => {
     const validationErrors = validate(firstName, email, password, confirmPassword);
@@ -91,9 +93,9 @@ export const SignupPage = () => {
           onChange={(event) => setFirstName(event.target.value)}
           error={Boolean(fieldErrors.firstName)}
           helperText={fieldErrors.firstName}
-          color={{ color: 'primary', intensity: 500}}
+          color={fieldColors[0]}
         />
-        <Input color={{ color: 'tertiary', intensity: 500}} label="Last name" value={lastName} onChange={(event) => setLastName(event.target.value)} />
+        <Input color={fieldColors[1]} label="Last name" value={lastName} onChange={(event) => setLastName(event.target.value)} />
         <Input
           label="Email"
           type="email"
@@ -102,7 +104,7 @@ export const SignupPage = () => {
           onChange={(event) => setEmail(event.target.value)}
           error={Boolean(fieldErrors.email)}
           helperText={fieldErrors.email}
-          color={{ color: 'accent', intensity: 500}}
+          color={fieldColors[2]}
         />
         <PasswordInput
           label="Password"
@@ -111,6 +113,7 @@ export const SignupPage = () => {
           onChange={(event) => setPassword(event.target.value)}
           error={Boolean(fieldErrors.password)}
           helperText={fieldErrors.password}
+          color={fieldColors[3]}
         />
         <PasswordInput
           label="Confirm password"
@@ -119,6 +122,7 @@ export const SignupPage = () => {
           onChange={(event) => setConfirmPassword(event.target.value)}
           error={Boolean(fieldErrors.confirmPassword)}
           helperText={fieldErrors.confirmPassword}
+          color={fieldColors[4]}
         />
         <Button onClick={handleSubmit} variant={{ kind: 'filled', color: 'primary' }} disabled={isLoading}>
           {isLoading ? 'Creating account…' : 'Create account'}

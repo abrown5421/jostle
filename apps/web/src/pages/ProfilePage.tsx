@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
   Avatar,
@@ -10,6 +10,8 @@ import {
   DEFAULT_BANNER_HEIGHT,
   Icon,
   Loader,
+  Select,
+  SelectItem,
   Tabs,
   TabsContent,
   TabsList,
@@ -31,6 +33,12 @@ import { profileTabs } from './profile/tabs/registry';
 
 const AVATAR_SIZE = 128;
 const COLUMN_INSET = 32;
+// Matches the avatar wrapper's own border-4 below.
+const AVATAR_BORDER = 4;
+// Room between the bottom of the avatar (which hangs AVATAR_SIZE / 2 + its border below the
+// banner) and the sidebar's first section, so the name never butts up against the avatar.
+const AVATAR_CLEARANCE = 16;
+const SIDEBAR_TOP_INSET = AVATAR_SIZE / 2 + AVATAR_BORDER + AVATAR_CLEARANCE;
 
 // @inithium/db's UserProfileBannerConfig stores color stops as a plain string[] (libs/db must
 // stay ignorant of @inithium/ui's non-empty-tuple BannerTrianglifyConfig type - see
@@ -61,6 +69,9 @@ export const ProfilePage = () => {
   // page's banner spans the full page width, which varies a lot across viewports, so it measures
   // its own wrapper and feeds the real width back in to keep the mesh undistorted everywhere.
   const { ref: bannerSizeRef, size: bannerSize } = useElementSize();
+  // Controlled (rather than Tabs' own defaultValue) so the desktop tab strip and the mobile
+  // select below stay in sync - both drive and reflect the same active tab.
+  const [selectedTabId, setSelectedTabId] = useState<string | null>(null);
 
   // Falls back to a deterministic mesh seeded off the profile's own id when nothing's been
   // customized yet - every profile has a stable, on-brand banner with zero DB writes until its
@@ -88,6 +99,8 @@ export const ProfilePage = () => {
   const visibleTabs = profileTabs.filter((tab) => tab.visibility === 'all' || isOwnProfile);
   const initialTabId =
     requestedTabId && visibleTabs.some((tab) => tab.id === requestedTabId) ? requestedTabId : visibleTabs[0]?.id;
+  const activeTabId =
+    selectedTabId && visibleTabs.some((tab) => tab.id === selectedTabId) ? selectedTabId : initialTabId;
   const fullName = [profile.firstName, profile.lastName].filter(Boolean).join(' ');
 
   const initialBannerConfig: UserProfileBannerConfig =
@@ -156,8 +169,8 @@ export const ProfilePage = () => {
             at its direct middle" per spec. left offset matches the sidebar's own padding below
             (COLUMN_INSET) so the avatar and the left column read as one aligned column. */}
         <Box
-          bgColor={{ color: 'surface', intensity: 100 }}
-          borderColor={{ color: 'surface', intensity: 100 }}
+          bgColor={{ color: 'surface', intensity: 200 }}
+          borderColor={{ color: 'surface', intensity: 200 }}
           className="absolute rounded-full border-4"
           style={{ left: `${COLUMN_INSET}px`, top: `${DEFAULT_BANNER_HEIGHT}px`, transform: 'translateY(-50%)' }}
         >
@@ -179,7 +192,7 @@ export const ProfilePage = () => {
         <Box
           bgColor={{ color: 'surface', intensity: 200 }}
           flex={{ direction: 'col', gap: 24 }}
-          padding={{ base: COLUMN_INSET, top: 64 }}
+          padding={{ base: COLUMN_INSET, top: SIDEBAR_TOP_INSET }}
           className="w-full lg:w-1/4 lg:shadow-[4px_0_10px_-4px_rgba(0,0,0,0.15)]"
         >
           {profileSections.map((section) => (
@@ -195,8 +208,19 @@ export const ProfilePage = () => {
             // panel grows to fill whatever's left after the tab strip's own height, pushing the
             // page's own min-height out to the viewport's bottom edge - and past it, undisturbed,
             // the moment a tab's actual content is taller than that.
-            <Tabs defaultValue={initialTabId} className="flex flex-1 flex-col">
-              <TabsList>
+            <Tabs value={activeTabId} onValueChange={setSelectedTabId} className="flex flex-1 flex-col">
+              {/* A row of tabs overflows a phone-width viewport, so below md the same tabs are
+                  offered as a select instead. */}
+              <div className="md:hidden">
+                <Select value={activeTabId} onValueChange={setSelectedTabId}>
+                  {visibleTabs.map((tab) => (
+                    <SelectItem key={tab.id} value={tab.id}>
+                      {tab.label}
+                    </SelectItem>
+                  ))}
+                </Select>
+              </div>
+              <TabsList className="hidden md:flex">
                 {visibleTabs.map((tab) => (
                   <TabsTrigger key={tab.id} value={tab.id}>
                     {tab.label}
