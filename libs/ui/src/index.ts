@@ -243,6 +243,7 @@ export {
   CountdownBar,
   Leaderboard,
   Podium,
+  SpectrumColorPicker,
 // inithium:block:cms:composites:start
   SearchFilterBar,
   ListRow,
@@ -271,6 +272,7 @@ export type {
   LeaderboardRow,
   PodiumProps,
   PodiumEntry,
+  SpectrumColorPickerProps,
 // inithium:block:cms:composite-types:start
   SearchFilterBarProps,
   SearchFilterFieldOption,

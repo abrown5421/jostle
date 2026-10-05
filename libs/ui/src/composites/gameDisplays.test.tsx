@@ -41,6 +41,13 @@ describe('Leaderboard', () => {
   });
 });
 
+describe('Leaderboard trailing', () => {
+  it("renders a row's trailing content before its score", () => {
+    render(<Leaderboard rows={[{ id: 'a', name: 'Ann', score: 90, rank: 1, trailing: <span>chip</span> }]} />);
+    expect(screen.getByRole('listitem')).toHaveTextContent('1Annchip90');
+  });
+});
+
 describe('Podium', () => {
   it('shows at most the top three, winner in the middle', () => {
     const { container } = render(

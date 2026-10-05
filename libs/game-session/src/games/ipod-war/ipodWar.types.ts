@@ -1,3 +1,5 @@
+import type { PlayerStanding } from '../shared/roster';
+
 // iPod War's state, actions and views. The view and action types are what the web client codes
 // against (imported type-only via @inithium/game-session), so they're the game's wire contract.
 
@@ -134,14 +136,8 @@ export type IpodWarAction = IpodWarHostAction | IpodWarPlayerAction;
 
 // ---- Views ----
 
-export interface IpodWarStanding {
-  readonly participantId: string;
-  readonly total: number;
-  // Points from the song just revealed (0 outside the reveal).
-  readonly delta: number;
-  // Competition ranking - tied totals share a rank.
-  readonly rank: number;
-}
+// delta = points from the song just revealed (0 outside the reveal).
+export type IpodWarStanding = PlayerStanding;
 
 export interface IpodWarAnswer {
   readonly title: string;

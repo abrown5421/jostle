@@ -1,3 +1,4 @@
+import { toStandings as toRosterStandings } from '../shared';
 import type {
   IpodWarAnswer,
   IpodWarField,
@@ -23,19 +24,8 @@ const toAnswer = (song: IpodWarSong): IpodWarAnswer => ({
 const lastSongPoints = (state: IpodWarState, participantId: string): number =>
   state.phase === 'reveal' ? (state.results.at(-1)?.grades[participantId]?.points ?? 0) : 0;
 
-// Highest total first; tied totals share a rank (1, 2, 2, 4).
-export const toStandings = (state: IpodWarState): IpodWarStanding[] => {
-  const sorted = [...state.roster].sort((a, b) => (state.totals[b] ?? 0) - (state.totals[a] ?? 0));
-  return sorted.map((participantId) => {
-    const total = state.totals[participantId] ?? 0;
-    return {
-      participantId,
-      total,
-      delta: lastSongPoints(state, participantId),
-      rank: 1 + sorted.filter((other) => (state.totals[other] ?? 0) > total).length,
-    };
-  });
-};
+export const toStandings = (state: IpodWarState): IpodWarStanding[] =>
+  toRosterStandings(state.roster, state.totals, (participantId) => lastSongPoints(state, participantId));
 
 export const ipodWarPublicView = (state: IpodWarState): IpodWarPublicView => ({
   phase: state.phase,

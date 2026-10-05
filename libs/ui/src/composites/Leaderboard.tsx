@@ -14,6 +14,8 @@ export interface LeaderboardRow {
   readonly delta?: number;
   // An avatar or other marker before the name.
   readonly leading?: ReactNode;
+  // Anything a game wants just before the score (e.g. Point of Hue's guess swatch).
+  readonly trailing?: ReactNode;
   // Emphasises one row - e.g. "you" on a player's own screen.
   readonly highlight?: boolean;
 }
@@ -65,6 +67,7 @@ export const Leaderboard = ({
               +{row.delta}
             </Pill>
           )}
+          {row.trailing}
           <span className="w-16 text-right text-lg font-bold tabular-nums">{row.score}</span>
         </li>
       ))}

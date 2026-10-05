@@ -68,6 +68,10 @@ export interface GameActionResult<TState> {
   readonly scoreDeltas?: Readonly<Record<string, number>>;
   // Ends the game and returns the session to 'lobby' (scores and the game selection are kept).
   readonly complete?: boolean;
+  // The state changed but no view did (e.g. Point of Hue syncing a player's unsubmitted picker
+  // color) - store it without re-broadcasting anything. Ignored when there are score deltas or the
+  // game completes, which always broadcast.
+  readonly silent?: boolean;
 }
 
 export interface GameDefinition<TState = unknown, TSettings extends GameSettingValues = GameSettingValues, TPrepared = undefined> {

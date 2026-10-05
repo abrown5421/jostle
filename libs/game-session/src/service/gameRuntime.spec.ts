@@ -7,7 +7,7 @@ import { setActiveGameCatalog } from '../catalog/catalog-registry';
 import { resetGameDefinitions, setGameDefinitionsForTesting } from '../games/registry';
 import { setActiveRequirementEvaluator } from '../requirements/requirements-registry';
 import { getActiveSessionStore } from '../store/store-registry';
-import { SESSION_EVENTS, sessionHostChannel, sessionParticipantChannel } from './channels';
+import { SESSION_EVENTS, sessionChannel, sessionHostChannel, sessionParticipantChannel } from './channels';
 import {
   dispatchGameAction,
   endSession,
@@ -64,6 +64,8 @@ const TICK_GAME: GameDefinition<TickState> = {
       case 'resume':
         if (state.remainingMs === null) return { state };
         return { state: { ...state, endsAt: at(now, state.remainingMs), remainingMs: null, seq: state.seq + 1 } };
+      case 'whisper':
+        return { state: { ...state, notifications: [...state.notifications, 'whisper'] }, silent: true };
       case 'finish':
         return { state, complete: true };
       default:
@@ -177,6 +179,25 @@ describe('game timers', () => {
 });
 
 describe('game actions and notifications', () => {
+  it('stores a silent action without broadcasting anything', async () => {
+    const { code, host, participantId } = await startSession('tick-game');
+    await startGame(host);
+    const broadcasts: string[] = [];
+    const unsubscribers = [sessionChannel(code), sessionHostChannel(code), sessionParticipantChannel(code, participantId)].map((channel) =>
+      subscribeToChannel(channel, ({ event }) => broadcasts.push(event)),
+    );
+
+    await dispatchGameAction(host, { type: 'whisper' });
+    expect((await stateOf(code))?.notifications).toContain('whisper');
+    expect(broadcasts).toEqual([]);
+
+    // A normal action afterwards broadcasts as usual.
+    await dispatchGameAction(host, { type: 'pause' });
+    expect(broadcasts).toContain(SESSION_EVENTS.updated);
+    unsubscribers.forEach((unsubscribe) => unsubscribe());
+    await endSession(code, 'host-ended');
+  });
+
   it('never lets a client send a system action, nor a timer action the game reserves for the system', async () => {
     const { host, player } = await startSession('tick-game');
     await startGame(host);

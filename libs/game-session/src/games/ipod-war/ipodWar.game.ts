@@ -2,6 +2,7 @@ import type { GameDefinition } from '../../contracts/game-definition.contract';
 import { GameSessionError } from '../../service/session.errors';
 import { getIpodWarMusicSource } from './ipodWar.port';
 import type { IpodWarLoadedPlaylist } from './ipodWar.port';
+import { phaseTimeout } from '../shared';
 import { COUNTDOWN_MS, handleIpodWarAction } from './ipodWar.reducer';
 import type { IpodWarField, IpodWarSettings, IpodWarSong, IpodWarState, IpodWarTrack } from './ipodWar.types';
 import { IPOD_WAR_GAME_ID } from './ipodWar.types';
@@ -82,8 +83,7 @@ export const ipodWarGame: GameDefinition<IpodWarState, IpodWarSettings, IpodWarL
     };
   },
   handleAction: handleIpodWarAction,
-  nextTimeout: (state) =>
-    state.paused || !state.phaseEndsAt ? null : { at: state.phaseEndsAt, action: { type: 'timer', payload: { seq: state.timerSeq } } },
+  nextTimeout: phaseTimeout,
   publicView: ipodWarPublicView,
   hostView: ipodWarHostView,
   privateView: ipodWarPrivateView,

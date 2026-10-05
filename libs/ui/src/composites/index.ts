@@ -51,6 +51,9 @@ export type { LeaderboardProps, LeaderboardRow } from './Leaderboard';
 export { Podium } from './Podium';
 export type { PodiumProps, PodiumEntry } from './Podium';
 
+export { SpectrumColorPicker } from './SpectrumColorPicker';
+export type { SpectrumColorPickerProps } from './SpectrumColorPicker';
+
 // inithium:block:cms:exports:start
 export { SearchFilterBar } from './SearchFilterBar';
 export type { SearchFilterBarProps, SearchFilterFieldOption } from './SearchFilterBar';
