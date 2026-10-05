@@ -39,6 +39,24 @@ export interface IntegrationAccessToken {
   scopes: string[];
 }
 
+// One of the user's things at a provider (a Spotify playlist, ...) - mirrors @inithium/integrations'
+// IntegrationResource.
+export interface IntegrationResource {
+  id: string;
+  name: string;
+  imageUrl?: string;
+  // As the provider counts it - may include items a feature can't use.
+  itemCount: number;
+  ownerName?: string;
+  selectable: boolean;
+  unselectableReason?: string;
+}
+
+export interface ListIntegrationResourcesInput {
+  provider: string;
+  resource: string;
+}
+
 export interface StartIntegrationAuthorizationInput {
   provider: string;
   returnTo?: string;
@@ -63,7 +81,15 @@ export const integrationsApi = baseApi.injectEndpoints({
     }),
     disconnectIntegration: builder.mutation<void, string>({
       query: (provider) => ({ url: `/api/integrations/${encodeURIComponent(provider)}`, method: 'DELETE' }),
-      invalidatesTags: ['Integration'],
+      // A game's host requirements may hinge on this connection.
+      invalidatesTags: ['Integration', 'Game'],
+    }),
+    listIntegrationResources: builder.query<IntegrationResource[], ListIntegrationResourcesInput>({
+      query: ({ provider, resource }) =>
+        `/api/integrations/${encodeURIComponent(provider)}/resources/${encodeURIComponent(resource)}`,
+      transformResponse: (response: ApiResponse<IntegrationResource[]>) => response.data,
+      providesTags: ['Integration'],
+      keepUnusedDataFor: 60,
     }),
     // For browser SDKs that need the raw token (Spotify's Web Playback SDK getOAuthToken callback).
     // keepUnusedDataFor: 0 so a token never lingers in the cache - use the lazy hook and call
@@ -81,4 +107,5 @@ export const {
   useStartIntegrationAuthorizationMutation,
   useDisconnectIntegrationMutation,
   useLazyGetIntegrationAccessTokenQuery,
+  useListIntegrationResourcesQuery,
 } = integrationsApi;

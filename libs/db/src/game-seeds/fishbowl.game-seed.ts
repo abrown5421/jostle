@@ -51,6 +51,7 @@ const fishbowlGameSeed: CreateGameInput = {
       default: true,
     },
   ],
+  requirements: [],
   order: 30,
   seedVersion: 2,
   isPublished: true,

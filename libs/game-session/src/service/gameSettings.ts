@@ -36,8 +36,26 @@ const validateSettingValue = (definition: GameSettingDefinition, value: unknown)
         throw invalid(`${definition.label} must be one of: ${definition.options.map((option) => option.label).join(', ')}`);
       }
       return value;
+    case 'integration-resource':
+      // Format only - whether the host can actually use that resource needs their account, so it
+      // is checked when the game starts (see the GameDefinition's prepare).
+      if (typeof value !== 'string' || !(value === '' || INTEGRATION_RESOURCE_ID.test(value))) {
+        throw invalid(`${definition.label} isn't a valid choice`);
+      }
+      return value;
   }
 };
+
+// Provider resource ids are opaque, but always short and URL-safe (Spotify's are base62).
+const INTEGRATION_RESOURCE_ID = /^[A-Za-z0-9_-]{1,128}$/;
+
+// The required integration-resource settings that are still unset - startGame refuses with the
+// first one's label ("Choose a playlist").
+export const findMissingRequiredSettings = (
+  definitions: readonly GameSettingDefinition[],
+  values: GameSettingValues,
+): GameSettingDefinition[] =>
+  definitions.filter((definition) => definition.type === 'integration-resource' && definition.required && !values[definition.key]);
 
 export const defaultGameSettings = (definitions: readonly GameSettingDefinition[]): GameSettingValues =>
   Object.fromEntries(definitions.map((definition) => [definition.key, definition.default]));
@@ -89,6 +107,14 @@ export const assertValidGameSettingDefinitions = (definitions: readonly GameSett
     }
     if (definition.type === 'select' && definition.options.length === 0) {
       throw invalid(`${definition.label}: a select needs at least one option`);
+    }
+    if (definition.type === 'integration-resource') {
+      if (!definition.provider || !definition.resource) throw invalid(`${definition.label}: needs a provider and a resource`);
+      if (definition.default !== '') throw invalid(`${definition.label}: the default must be '' (nothing chosen)`);
+      const minItemsFrom = definition.minItemsFromSetting;
+      if (minItemsFrom && !definitions.some((other) => other.key === minItemsFrom && other.type === 'number')) {
+        throw invalid(`${definition.label}: minItemsFromSetting must name a number setting`);
+      }
     }
     validateSettingValue(definition, definition.default);
   });

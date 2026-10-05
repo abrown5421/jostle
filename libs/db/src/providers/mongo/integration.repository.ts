@@ -65,6 +65,7 @@ export const createMongoIntegrationRepository = (model: Model<IntegrationDocumen
       credentialsExpireAt: input.credentialsExpireAt,
     };
     if (input.scopes) update['scopes'] = input.scopes;
+    if (input.metadata) update['metadata'] = input.metadata;
     const integration = await model
       .findOneAndUpdate({ userId, provider }, { $set: update }, { new: true, runValidators: true })
       .select(WITH_CREDENTIALS)

@@ -83,6 +83,9 @@ export interface SessionSnapshot {
   readonly game: SessionGameSnapshot | null;
   readonly version: number;
   readonly createdAt: string;
+  // The server's clock when this snapshot was made. Game deadlines (a view's `endsAt`, ...) are in
+  // server time, so a client derives its clock offset from this to count down accurately.
+  readonly serverTime: string;
 }
 
 // What an opaque session token resolves to. participantId is null for the host.

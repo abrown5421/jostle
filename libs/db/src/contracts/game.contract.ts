@@ -3,7 +3,7 @@
 // game's configurable settings. Gameplay itself is code - a GameDefinition in @inithium/game-session
 // whose id matches this record's slug - so a game can be listed here before it's playable.
 
-export const GAME_SETTING_TYPES = ['number', 'boolean', 'select'] as const;
+export const GAME_SETTING_TYPES = ['number', 'boolean', 'select', 'integration-resource'] as const;
 export type GameSettingType = (typeof GAME_SETTING_TYPES)[number];
 
 interface GameSettingBase {
@@ -34,11 +34,46 @@ export type GameSettingDefinition =
       unit?: string;
     })
   | (GameSettingBase & { type: 'boolean'; default: boolean })
-  | (GameSettingBase & { type: 'select'; default: string; options: GameSettingSelectOption[] });
+  | (GameSettingBase & { type: 'select'; default: string; options: GameSettingSelectOption[] })
+  // Something the host owns in a connected integration (iPod War: one of their Spotify playlists).
+  // The stored value is the resource's id at that provider, '' while nothing is chosen. Which ids
+  // are valid depends on the host's own account, so only the id's *format* is checked when it's
+  // set - the game resolves (and so verifies) it against the provider when it starts.
+  | (GameSettingBase & {
+      type: 'integration-resource';
+      default: string;
+      // An integration provider id (@inithium/integrations), e.g. 'spotify'.
+      provider: string;
+      // Which of that provider's resource lists to pick from, e.g. 'playlist'.
+      resource: string;
+      // When true the game can't start until something is chosen.
+      required?: boolean;
+      // The key of a number setting whose value is the fewest items the chosen resource must hold
+      // (iPod War: a playlist needs at least `songCount` songs) - smaller ones aren't selectable.
+      minItemsFromSetting?: string;
+    });
 
 export type GameSettingValue = number | boolean | string;
 // Keyed by GameSettingDefinition.key.
 export type GameSettingValues = Record<string, GameSettingValue>;
+
+// Something a *host* must have before they can host a game - checked per user when the catalogue
+// is listed (so the card can explain itself) and again, authoritatively, when the game is picked
+// and started. Players never need anything. A union on `kind` so new kinds of requirement slot in
+// without touching existing ones.
+export const GAME_REQUIREMENT_KINDS = ['integration'] as const;
+export type GameRequirementKind = (typeof GAME_REQUIREMENT_KINDS)[number];
+
+export interface IntegrationGameRequirement {
+  kind: 'integration';
+  // An integration provider id (@inithium/integrations), e.g. 'spotify'.
+  provider: string;
+  // Provider-defined capabilities the connected account must have, e.g. Spotify's 'playback'
+  // (Premium). Omitted -> any healthy connection will do.
+  capabilities?: string[];
+}
+
+export type GameRequirement = IntegrationGameRequirement;
 
 export interface GameRule {
   title: string;
@@ -66,6 +101,8 @@ export interface GameEntity {
   tags: string[];
   rules: GameRule[];
   settings: GameSettingDefinition[];
+  // What a host needs before they can host this game. Empty for most games.
+  requirements: GameRequirement[];
   // Catalogue sort order (ascending), then title.
   order: number;
   // Bumped in a game's seed file whenever the seed changes. ensureSeededGames overwrites a stored

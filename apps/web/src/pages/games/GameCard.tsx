@@ -2,6 +2,7 @@ import { Box, Button, Card, Icon, Pill, Text, mergeClassNames, resolveColorClass
 import type { GameCatalogueItem } from '@inithium/api-client';
 import { GameMedia } from './GameMedia';
 import { formatPlayerCount } from './gameLabels';
+import { firstHostBlocker } from './requirements';
 import { SECONDARY_BUTTON_PROPS, SURFACE_BG, SURFACE_BORDER, SURFACE_TEXT } from './surfaceColors';
 
 // The card's main call to action - "Host" from the public catalogue, "Select" when the host
@@ -23,61 +24,70 @@ export interface GameCardProps {
 
 // Not clickable as a whole - two explicit buttons instead, so hosting never requires opening the
 // details and the details are always one deliberate click away.
-export const GameCard = ({ game, action, onLearnMore, isSelected = false }: GameCardProps) => (
-  <Card
-    media={<GameMedia game={game} />}
-    borderColor={isSelected ? { color: 'primary', intensity: 500 } : SURFACE_BORDER}
-    className={mergeClassNames(
-      'flex flex-none flex-col sm:w-72',
-      resolveColorClass('bg', SURFACE_BG),
-      resolveColorClass('text', SURFACE_TEXT),
-      isSelected && 'ring-2 ring-primary-500',
-    )}
-  >
-    <Box flex={{ direction: 'col', gap: 12 }}>
-      <Box flex={{ direction: 'col', gap: 8 }}>
-        <Box flex={{ direction: 'row', justify: 'between', align: 'center', gap: 8 }}>
-          <Text as="h3" className="text-lg font-bold" textColor={SURFACE_TEXT}>
-            {game.title}
-          </Text>
-          {!game.isPlayable && (
-            <Pill
-              color={SURFACE_BG}
-              className={mergeClassNames('flex-none border', resolveColorClass('border', SURFACE_TEXT), resolveColorClass('text', SURFACE_TEXT))}
-            >
-              Coming soon
-            </Pill>
-          )}
-        </Box>
-        <Text as="p" className="text-sm" textColor={SURFACE_TEXT}>
-          {game.tagline}
-        </Text>
-        <Box flex={{ direction: 'row', gap: 12, wrap: 'wrap' }} className="text-xs font-medium">
-          <Box as="span" flex={{ direction: 'row', align: 'center', gap: 4 }}>
-            <Icon as="span" name="Users" size={14} />
-            {formatPlayerCount(game)}
+export const GameCard = ({ game, action, onLearnMore, isSelected = false }: GameCardProps) => {
+  const blocker = firstHostBlocker(game);
+  return (
+    <Card
+      media={<GameMedia game={game} />}
+      borderColor={isSelected ? { color: 'primary', intensity: 500 } : SURFACE_BORDER}
+      className={mergeClassNames(
+        'flex flex-none flex-col sm:w-72',
+        resolveColorClass('bg', SURFACE_BG),
+        resolveColorClass('text', SURFACE_TEXT),
+        isSelected && 'ring-2 ring-primary-500',
+      )}
+    >
+      <Box flex={{ direction: 'col', gap: 12 }}>
+        <Box flex={{ direction: 'col', gap: 8 }}>
+          <Box flex={{ direction: 'row', justify: 'between', align: 'center', gap: 8 }}>
+            <Text as="h3" className="text-lg font-bold" textColor={SURFACE_TEXT}>
+              {game.title}
+            </Text>
+            {!game.isPlayable && (
+              <Pill
+                color={SURFACE_BG}
+                className={mergeClassNames('flex-none border', resolveColorClass('border', SURFACE_TEXT), resolveColorClass('text', SURFACE_TEXT))}
+              >
+                Coming soon
+              </Pill>
+            )}
           </Box>
-          {game.estimatedMinutes !== undefined && (
-            <Box as="span" flex={{ direction: 'row', align: 'center', gap: 4 }}>
-              <Icon as="span" name="Clock" size={14} />~{game.estimatedMinutes} min
-            </Box>
+          <Text as="p" className="text-sm" textColor={SURFACE_TEXT}>
+            {game.tagline}
+          </Text>
+          {blocker && (
+            <Text as="p" className="inline-flex items-start gap-1 text-xs font-medium" textColor={SURFACE_TEXT}>
+              <Icon as="span" name="LockSimple" size={14} className="mt-px flex-none" />
+              {blocker.reason}
+            </Text>
           )}
+          <Box flex={{ direction: 'row', gap: 12, wrap: 'wrap' }} className="text-xs font-medium">
+            <Box as="span" flex={{ direction: 'row', align: 'center', gap: 4 }}>
+              <Icon as="span" name="Users" size={14} />
+              {formatPlayerCount(game)}
+            </Box>
+            {game.estimatedMinutes !== undefined && (
+              <Box as="span" flex={{ direction: 'row', align: 'center', gap: 4 }}>
+                <Icon as="span" name="Clock" size={14} />~{game.estimatedMinutes} min
+              </Box>
+            )}
+          </Box>
+        </Box>
+
+        <Box flex={{ direction: 'row', gap: 8 }}>
+          <Button {...SECONDARY_BUTTON_PROPS} className="flex-1" onClick={() => onLearnMore(game)}>
+            Learn more
+          </Button>
+          <Button
+            variant={{ kind: 'filled', color: 'primary' }}
+            className="flex-1 disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={() => action.onClick(game)}
+            disabled={action.disabled}
+          >
+            {action.label}
+          </Button>
         </Box>
       </Box>
-
-      <Box flex={{ direction: 'row', gap: 8 }}>
-        <Button {...SECONDARY_BUTTON_PROPS} className="flex-1" onClick={() => onLearnMore(game)}>
-          Learn more
-        </Button>
-        <Button
-          variant={{ kind: 'filled', color: 'primary' }}
-          className="flex-1 disabled:cursor-not-allowed disabled:opacity-50"
-          onClick={() => action.onClick(game)}
-          disabled={action.disabled}
-        >
-          {action.label}
-        </Button>
-      </Box>
-    </Box>
-  </Card>
-);
+    </Card>
+  );
+};

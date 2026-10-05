@@ -1,8 +1,10 @@
 import { useEffect } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { Box, Button, Loader, Text, useNavigateWithTransition } from '@inithium/ui';
-import { getGameSessionError, sendGameSessionMessage } from '@inithium/api-client';
+import { getGameSessionError, sendGameSessionMessage, useGetGameQuery } from '@inithium/api-client';
+import { HostGameScreen } from './session/HostGameScreen';
 import { HostLobbyStep } from './session/HostLobbyStep';
+import { firstHostBlocker, resolveRequirementPath } from './games/requirements';
 import { useHostSession } from './session/useHostSession';
 import { useParticipantSounds } from './session/useParticipantSounds';
 import { SECONDARY_BUTTON_PROPS, SURFACE_TEXT } from './games/surfaceColors';
@@ -30,9 +32,17 @@ export const HostPage = () => {
   }, [isResolvingUser, userId, navigate, location.search]);
 
   // A game picked on /games before there was a session: select it once the server is listening,
-  // then drop the param so a refresh doesn't re-send it.
+  // then drop the param so a refresh doesn't re-send it. A game this host can't host yet (e.g.
+  // Spotify not connected) sends them to fix that first, then back here with the pick intact.
+  const { data: requestedGame, isFetching: isFetchingRequestedGame } = useGetGameQuery(requestedGameId ?? '', {
+    skip: !requestedGameId || !userId,
+  });
   useEffect(() => {
-    if (!isReady || !requestedGameId) return;
+    if (!isReady || !requestedGameId || isFetchingRequestedGame || !userId) return;
+    if (firstHostBlocker(requestedGame)) {
+      navigate(resolveRequirementPath(userId, `/host?game=${encodeURIComponent(requestedGameId)}`));
+      return;
+    }
     sendGameSessionMessage({ type: 'host:select-game', gameId: requestedGameId });
     setSearchParams(
       (previous) => {
@@ -42,7 +52,7 @@ export const HostPage = () => {
       },
       { replace: true },
     );
-  }, [isReady, requestedGameId, setSearchParams]);
+  }, [isReady, requestedGameId, requestedGame, isFetchingRequestedGame, userId, navigate, setSearchParams]);
 
   useParticipantSounds(session?.participants);
 
@@ -91,6 +101,8 @@ export const HostPage = () => {
       </Box>
     );
   }
+
+  if (session.status === 'in-game' && session.game) return <HostGameScreen session={session} live={live} />;
 
   return (
     <HostLobbyStep

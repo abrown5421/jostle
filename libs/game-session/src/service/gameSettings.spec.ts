@@ -6,6 +6,7 @@ import {
   applyGameSettingsPatch,
   assertValidGameSettingDefinitions,
   defaultGameSettings,
+  findMissingRequiredSettings,
   resolveGameSettings,
 } from './gameSettings';
 
@@ -70,6 +71,47 @@ describe('game settings', () => {
         { key: 'a', label: 'A again', type: 'boolean', default: false },
       ]),
     ).toThrow();
+  });
+
+  describe('integration-resource settings', () => {
+    const RESOURCE_DEFINITIONS: GameSettingDefinition[] = [
+      { key: 'count', label: 'Songs', type: 'number', default: 30, min: 1, max: 100 },
+      {
+        key: 'playlist',
+        label: 'Playlist',
+        type: 'integration-resource',
+        default: '',
+        provider: 'spotify',
+        resource: 'playlist',
+        required: true,
+        minItemsFromSetting: 'count',
+      },
+    ];
+
+    it('accepts a provider id or nothing, and rejects anything that is not an id', () => {
+      const current = defaultGameSettings(RESOURCE_DEFINITIONS);
+      expect(applyGameSettingsPatch(RESOURCE_DEFINITIONS, current, { playlist: '37i9dQZF1DXcBWIGoYBM5M' }).playlist).toBe(
+        '37i9dQZF1DXcBWIGoYBM5M',
+      );
+      expect(applyGameSettingsPatch(RESOURCE_DEFINITIONS, current, { playlist: '' }).playlist).toBe('');
+      for (const playlist of [42, 'has spaces', '../etc', 'x'.repeat(129)]) {
+        expect(() => applyGameSettingsPatch(RESOURCE_DEFINITIONS, current, { playlist })).toThrow(
+          expect.objectContaining({ code: 'INVALID_SETTINGS' }),
+        );
+      }
+    });
+
+    it('reports required resources that are still unset', () => {
+      expect(findMissingRequiredSettings(RESOURCE_DEFINITIONS, { count: 30, playlist: '' }).map(({ key }) => key)).toEqual(['playlist']);
+      expect(findMissingRequiredSettings(RESOURCE_DEFINITIONS, { count: 30, playlist: 'abc' })).toEqual([]);
+    });
+
+    it('rejects a definition with a non-empty default or a minItemsFromSetting that is not a number setting', () => {
+      const [count, playlist] = RESOURCE_DEFINITIONS;
+      expect(() => assertValidGameSettingDefinitions(RESOURCE_DEFINITIONS)).not.toThrow();
+      expect(() => assertValidGameSettingDefinitions([count, { ...playlist, default: 'abc' } as GameSettingDefinition])).toThrow();
+      expect(() => assertValidGameSettingDefinitions([{ ...playlist, minItemsFromSetting: 'missing' } as GameSettingDefinition])).toThrow();
+    });
   });
 
   it.each(gameSeeds.map((seed) => [seed.slug, seed] as const))('seeded game "%s" has a valid catalogue record', (_slug, seed) => {

@@ -41,6 +41,7 @@ export {
   retainGameSession,
   sendGameSessionMessage,
   getGameSessionState,
+  getGameSessionServerNow,
   subscribeToGameSessionState,
   subscribeToGameSessionEvents,
 } from './gameSession/gameSessionClientStore';
@@ -62,7 +63,7 @@ export type {
 } from '@inithium/game-session';
 
 export { gamesApi, useListGamesQuery, useGetGameQuery } from './endpoints/games.endpoints';
-export type { GameCatalogueItem } from './endpoints/games.endpoints';
+export type { GameCatalogueItem, GameRequirementBlocker } from './endpoints/games.endpoints';
 export type {
   GameSettingDefinition,
   GameSettingValue,
@@ -139,6 +140,7 @@ export {
   useStartIntegrationAuthorizationMutation,
   useDisconnectIntegrationMutation,
   useLazyGetIntegrationAccessTokenQuery,
+  useListIntegrationResourcesQuery,
 } from './endpoints/integrations.endpoints';
 export type {
   IntegrationStatus,
@@ -147,6 +149,8 @@ export type {
   IntegrationCatalogEntry,
   IntegrationAccessToken,
   StartIntegrationAuthorizationInput,
+  IntegrationResource,
+  ListIntegrationResourcesInput,
 } from './endpoints/integrations.endpoints';
 
 // inithium:block:friends:exports:start

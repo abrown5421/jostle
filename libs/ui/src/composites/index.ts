@@ -40,6 +40,15 @@ export type { AvatarEditDialogProps } from './AvatarEditDialog';
 export { BannerEditDialog } from './BannerEditDialog';
 export type { BannerEditDialogProps } from './BannerEditDialog';
 
+export { CountdownBar } from './CountdownBar';
+export type { CountdownBarProps } from './CountdownBar';
+
+export { Leaderboard } from './Leaderboard';
+export type { LeaderboardProps, LeaderboardRow } from './Leaderboard';
+
+export { Podium } from './Podium';
+export type { PodiumProps, PodiumEntry } from './Podium';
+
 // inithium:block:cms:exports:start
 export { SearchFilterBar } from './SearchFilterBar';
 export type { SearchFilterBarProps, SearchFilterFieldOption } from './SearchFilterBar';

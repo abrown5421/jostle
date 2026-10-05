@@ -46,6 +46,9 @@ export type UpdateIntegrationCredentialsInput = {
   encryptedCredentials: string;
   credentialsExpireAt?: Date;
   scopes?: string[];
+  // A fresh read of the account's non-secret facts (e.g. after Spotify Free -> Premium), when the
+  // refresh fetched one.
+  metadata?: Record<string, unknown>;
 };
 
 export interface IntegrationRepository {

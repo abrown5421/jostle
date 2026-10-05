@@ -5,6 +5,7 @@ import type { GameCatalogueItem } from '@inithium/api-client';
 import { GameCatalogue } from './games/GameCatalogue';
 import type { GameCardAction } from './games/GameCard';
 import { SECONDARY_BUTTON_PROPS, SURFACE_BG, SURFACE_BORDER, SURFACE_TEXT } from './games/surfaceColors';
+import { describeBlockerAction, firstHostBlocker, resolveRequirementPath } from './games/requirements';
 import { useHostSession } from './session/useHostSession';
 
 // The game catalogue, and the game-picking step of both host flows:
@@ -32,6 +33,12 @@ export const GamesPage = () => {
     if (live.lastError) setPendingGameId(null);
   }, [live.lastError]);
 
+  // Mid-game there's nothing to pick - the game is on the host screen.
+  const isInGame = activeSession?.status === 'in-game';
+  useEffect(() => {
+    if (isInGame) navigate('/host');
+  }, [isInGame, navigate]);
+
   const resolveAction = (game: GameCatalogueItem): GameCardAction => {
     const hostPath = `/host?game=${encodeURIComponent(game.slug)}`;
     if (!userId) {
@@ -42,6 +49,16 @@ export const GamesPage = () => {
       };
     }
     if (isLoading) return { label: 'Host', disabled: true, onClick: () => undefined };
+    // Something the host must set up first (e.g. Spotify Premium) - send them to fix it, then
+    // straight back to picking this game.
+    const blocker = firstHostBlocker(game);
+    if (blocker) {
+      return {
+        label: describeBlockerAction(blocker),
+        hint: blocker.reason,
+        onClick: () => navigate(resolveRequirementPath(userId, activeSession ? '/games' : hostPath)),
+      };
+    }
     if (!activeSession) return { label: 'Host', onClick: () => navigate(hostPath) };
 
     const isCurrent = game.slug === selectedGameId;

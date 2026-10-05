@@ -42,6 +42,7 @@ const pointOfHueGameSeed: CreateGameInput = {
       unit: 'seconds',
     },
   ],
+  requirements: [],
   order: 20,
   seedVersion: 2,
   isPublished: true,

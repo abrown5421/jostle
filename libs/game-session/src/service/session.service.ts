@@ -1,25 +1,29 @@
-import type { AvatarConfig } from '@inithium/db';
+import type { AvatarConfig, GameSettingValues } from '@inithium/db';
 import { publishToChannel } from '@inithium/realtime';
-import type { GameAction, GameActor } from '../contracts/game-definition.contract';
+import { SYSTEM_ACTIONS } from '../contracts/game-definition.contract';
+import type { GameAction, GameActor, GameDefinition, GameSetupContext } from '../contracts/game-definition.contract';
 import type {
   GameSessionRecord,
   SessionCredential,
+  SessionParticipant,
   SessionParticipantRecord,
   SessionSnapshot,
 } from '../contracts/session.contract';
 import type { GameCatalogEntry } from '../contracts/game-catalog.contract';
 import { getActiveGameCatalog } from '../catalog/catalog-registry';
 import { getGameDefinition } from '../games/registry';
+import { getActiveRequirementEvaluator } from '../requirements/requirements-registry';
 import { getActiveSessionStore } from '../store/store-registry';
 import {
   SESSION_EVENTS,
   sessionChannel,
+  sessionHostChannel,
   sessionParticipantChannel,
   type ParticipantRemovedReason,
   type SessionEndReason,
 } from './channels';
-import { applyGameSettingsPatch, defaultGameSettings, resolveGameSettings } from './gameSettings';
-import { GameSessionError } from './session.errors';
+import { applyGameSettingsPatch, defaultGameSettings, findMissingRequiredSettings, resolveGameSettings } from './gameSettings';
+import { GameSessionError, isGameSessionError } from './session.errors';
 import { generateParticipantId, generateSessionCode, generateSessionToken, normalizeSessionCode } from './sessionCode';
 
 // A hard ceiling on seats per session, independent of any game. Whether a given game can actually
@@ -31,7 +35,11 @@ export const MAX_NAME_LENGTH = 16;
 // How long a session survives with no host screen connected - covers a refresh, a flaky TV
 // wifi, or the host closing the tab and reopening /host (which resumes the same session).
 export const HOST_RECONNECT_GRACE_MS = 2 * 60 * 1000;
+// How long a game's prepare step (e.g. loading a playlist) may take before the start is refused.
+export const GAME_PREPARE_TIMEOUT_MS = 30 * 1000;
 const CODE_GENERATION_ATTEMPTS = 20;
+
+const SYSTEM_ACTOR: GameActor = { role: 'system', participantId: null };
 
 const now = (): string => new Date().toISOString();
 const store = () => getActiveSessionStore();
@@ -73,12 +81,15 @@ const startHostAbsenceTimer = (code: string): void => {
   hostAbsenceTimers.set(code, timer);
 };
 
+const toParticipants = (record: GameSessionRecord): SessionParticipant[] =>
+  record.participants.map(({ token: _token, ...participant }) => participant);
+
 export const toSessionSnapshot = (record: GameSessionRecord): SessionSnapshot => {
   const definition = record.game ? getGameDefinition(record.game.gameId) : undefined;
   return {
     code: record.code,
     status: record.status,
-    participants: record.participants.map(({ token: _token, ...participant }) => participant),
+    participants: toParticipants(record),
     scores: record.scores,
     selection: record.selection,
     game: record.game
@@ -86,15 +97,125 @@ export const toSessionSnapshot = (record: GameSessionRecord): SessionSnapshot =>
       : null,
     version: record.version,
     createdAt: record.createdAt,
+    serverTime: now(),
   };
+};
+
+// The game view a given seat is entitled to: the host screen's hostView, or that player's own
+// privateView. Sent on every change (publishGameViews) and in each connection's welcome.
+const resolveGameView = (record: GameSessionRecord, credential: SessionCredential): unknown => {
+  if (!record.game) return null;
+  const definition = getGameDefinition(record.game.gameId);
+  if (credential.role === 'host') return definition?.hostView?.(record.game.state) ?? null;
+  if (!credential.participantId) return null;
+  return definition?.privateView?.(record.game.state, credential.participantId) ?? null;
+};
+
+const publishGameViews = async (record: GameSessionRecord): Promise<void> => {
+  if (!record.game) return;
+  const definition = getGameDefinition(record.game.gameId);
+  if (!definition) return;
+  const { state } = record.game;
+  const publishes: Promise<void>[] = [];
+  if (definition.hostView) {
+    publishes.push(publishToChannel(sessionHostChannel(record.code), SESSION_EVENTS.gameHost, definition.hostView(state)));
+  }
+  if (definition.privateView) {
+    const { privateView } = definition;
+    record.participants.forEach((participant) =>
+      publishes.push(
+        publishToChannel(
+          sessionParticipantChannel(record.code, participant.id),
+          SESSION_EVENTS.gamePrivate,
+          privateView(state, participant.id),
+        ),
+      ),
+    );
+  }
+  await Promise.all(publishes);
+};
+
+// Game timers. A game declares its next timed event as a function of its state (nextTimeout);
+// after every commit the session's single timer is re-armed from the new state, so pausing,
+// skipping or ending a game needs no timer bookkeeping in the game itself. Process-local like the
+// locks above - a shared store would re-arm each live session's timer from its stored state on
+// boot, which is possible precisely because the timer is derived from state.
+const gameTimers = new Map<string, ReturnType<typeof setTimeout>>();
+
+const clearGameTimer = (code: string): void => {
+  const timer = gameTimers.get(code);
+  if (timer) clearTimeout(timer);
+  gameTimers.delete(code);
+};
+
+const syncGameTimer = (record: GameSessionRecord): void => {
+  clearGameTimer(record.code);
+  if (record.status !== 'in-game' || !record.game) return;
+  const timeout = getGameDefinition(record.game.gameId)?.nextTimeout?.(record.game.state);
+  if (!timeout) return;
+  const { startedAt } = record.game;
+  const timer = setTimeout(
+    () => void fireGameTimer(record.code, startedAt, timeout.action),
+    Math.max(0, Date.parse(timeout.at) - Date.now()),
+  );
+  timer.unref?.();
+  gameTimers.set(record.code, timer);
 };
 
 const commit = async (record: GameSessionRecord, changes: Partial<GameSessionRecord>): Promise<GameSessionRecord> => {
   const next: GameSessionRecord = { ...record, ...changes, version: record.version + 1, updatedAt: now() };
   await store().save(next);
+  syncGameTimer(next);
   await publishToChannel(sessionChannel(next.code), SESSION_EVENTS.updated, toSessionSnapshot(next));
+  await publishGameViews(next);
   return next;
 };
+
+// Runs one action through the active game's reducer and commits the result. Callers hold the
+// session's lock. An action that changes nothing (a stale timer, a no-op notification) commits
+// nothing, so it neither bumps the version nor re-broadcasts.
+const applyGameAction = async (record: GameSessionRecord, actor: GameActor, action: GameAction): Promise<GameSessionRecord> => {
+  const { game } = record;
+  if (!game) throw new GameSessionError('NO_ACTIVE_GAME', 'No game is in progress');
+  const definition = getGameDefinition(game.gameId);
+  if (!definition) throw new GameSessionError('GAME_NOT_FOUND', `Unknown game "${game.gameId}"`);
+
+  const result = definition.handleAction(game.state, action, { participants: toParticipants(record), actor, now: now() });
+  const deltas = Object.entries(result.scoreDeltas ?? {});
+  if (result.state === game.state && !result.complete && deltas.length === 0) return record;
+
+  const scores = { ...record.scores };
+  deltas.forEach(([participantId, delta]) => {
+    scores[participantId] = (scores[participantId] ?? 0) + delta;
+  });
+
+  return commit(
+    record,
+    result.complete ? { status: 'lobby', game: null, scores } : { game: { ...game, state: result.state }, scores },
+  );
+};
+
+// Tells a running game something about the room changed (SYSTEM_ACTIONS). Callers hold the lock.
+// Never fails the caller - a leave or a disconnect must go through even if the game chokes on it.
+const notifyGame = async (record: GameSessionRecord, type: string, payload?: unknown): Promise<GameSessionRecord> => {
+  if (record.status !== 'in-game' || !record.game) return record;
+  try {
+    return await applyGameAction(record, SYSTEM_ACTOR, { type, payload });
+  } catch (error) {
+    console.error(`Game "${record.game.gameId}" failed to handle ${type}:`, error);
+    return record;
+  }
+};
+
+const fireGameTimer = (code: string, startedAt: string, action: GameAction): Promise<void> =>
+  withLock(code, async () => {
+    const record = await store().get(code);
+    // A timer armed for an earlier game (or a session that has since ended) is meaningless.
+    if (!record?.game || record.status !== 'in-game' || record.game.startedAt !== startedAt) return;
+    await applyGameAction(record, SYSTEM_ACTOR, action);
+  }).catch((error: unknown) => {
+    console.error('Game timer failed:', error);
+  });
 
 const requireSession = async (code: string): Promise<GameSessionRecord> => {
   const record = await store().get(code);
@@ -119,22 +240,6 @@ const isNameTaken = (record: GameSessionRecord, name: string, exceptParticipantI
   record.participants.some(
     (participant) => participant.id !== exceptParticipantId && participant.name.toLowerCase() === name.toLowerCase(),
   );
-
-const publishPrivateViews = async (record: GameSessionRecord): Promise<void> => {
-  if (!record.game) return;
-  const definition = getGameDefinition(record.game.gameId);
-  if (!definition?.privateView) return;
-  const { state } = record.game;
-  await Promise.all(
-    record.participants.map((participant) =>
-      publishToChannel(
-        sessionParticipantChannel(record.code, participant.id),
-        SESSION_EVENTS.gamePrivate,
-        definition.privateView?.(state, participant.id),
-      ),
-    ),
-  );
-};
 
 export interface HostedSession {
   readonly hostToken: string;
@@ -255,6 +360,19 @@ export const getSessionSnapshot = async (code: string): Promise<SessionSnapshot 
   return record ? toSessionSnapshot(record) : null;
 };
 
+export interface SessionWelcome {
+  readonly session: SessionSnapshot;
+  // The seat's game view (host -> hostView, player -> their privateView), null outside a game.
+  readonly gameView: unknown;
+}
+
+// Everything a freshly opened socket needs, read in one go so the snapshot and the game view
+// agree - a reconnecting device is fully caught up by its welcome alone.
+export const getSessionWelcome = async (credential: SessionCredential): Promise<SessionWelcome | null> => {
+  const record = await store().get(credential.code);
+  return record ? { session: toSessionSnapshot(record), gameView: resolveGameView(record, credential) } : null;
+};
+
 // Called by the gateway only on a credential's first socket opening / last socket closing, so
 // several tabs holding the same credential don't flap this.
 export const setCredentialConnected = (credential: SessionCredential, isConnected: boolean): Promise<void> =>
@@ -265,15 +383,17 @@ export const setCredentialConnected = (credential: SessionCredential, isConnecte
     if (credential.role === 'host') {
       if (isConnected) cancelHostAbsenceTimer(record.code);
       else startHostAbsenceTimer(record.code);
+      await notifyGame(record, SYSTEM_ACTIONS.hostConnection, { connected: isConnected });
       return;
     }
 
     if (!record.participants.some((participant) => participant.id === credential.participantId)) return;
-    await commit(record, {
+    const next = await commit(record, {
       participants: record.participants.map((participant) =>
         participant.id === credential.participantId ? { ...participant, isConnected } : participant,
       ),
     });
+    await notifyGame(next, SYSTEM_ACTIONS.participantsChanged);
   });
 
 const removeParticipant = async (
@@ -285,12 +405,13 @@ const removeParticipant = async (
     throw new GameSessionError('PARTICIPANT_NOT_FOUND', 'That player is not in this session');
   }
   const { [participantId]: _removedScore, ...scores } = record.scores;
-  await commit(record, {
+  const next = await commit(record, {
     participants: record.participants.filter((participant) => participant.id !== participantId),
     scores,
   });
   // After the commit, so the removed token no longer resolves by the time their sockets close.
   await publishToChannel(sessionParticipantChannel(record.code, participantId), SESSION_EVENTS.participantRemoved, { reason });
+  await notifyGame(next, SYSTEM_ACTIONS.participantsChanged);
 };
 
 export const leaveSession = (credential: SessionCredential): Promise<void> =>
@@ -308,6 +429,7 @@ export const kickParticipant = (credential: SessionCredential, participantId: st
 export const endSession = (code: string, reason: SessionEndReason): Promise<void> =>
   withLock(code, async () => {
     cancelHostAbsenceTimer(code);
+    clearGameTimer(code);
     const record = await store().get(code);
     if (!record) return;
     await store().delete(code);
@@ -340,12 +462,35 @@ const requireSelection = (record: GameSessionRecord) => {
   return record.selection;
 };
 
+const requirePlayerCount = (record: GameSessionRecord, game: GameCatalogEntry): void => {
+  const playerCount = record.participants.length;
+  if (playerCount < game.minPlayers || playerCount > game.maxPlayers) {
+    throw new GameSessionError('INVALID_PLAYER_COUNT', `${game.title} needs ${game.minPlayers}-${game.maxPlayers} players`);
+  }
+};
+
+// The catalogue's host requirements (e.g. a connected Spotify Premium account), checked against
+// the session's host - on pick and again on start, since a connection can lapse in between.
+const requireHostRequirements = async (record: GameSessionRecord, game: GameCatalogEntry): Promise<void> => {
+  if (!game.requirements?.length) return;
+  const [blocker] = await getActiveRequirementEvaluator().evaluate(record.hostUserId, game.requirements);
+  if (blocker) {
+    throw new GameSessionError('REQUIREMENTS_NOT_MET', blocker.reason, { requirement: blocker.requirement });
+  }
+};
+
+const sameSettings = (a: GameSettingValues, b: GameSettingValues): boolean => {
+  const keys = Object.keys(a);
+  return keys.length === Object.keys(b).length && keys.every((key) => a[key] === b[key]);
+};
+
 export const selectGame = (credential: SessionCredential, gameId: string): Promise<void> =>
   withLock(credential.code, async () => {
     requireHost(credential);
     const record = await requireSession(credential.code);
     requireLobby(record);
     const game = await requireCatalogGame(gameId);
+    await requireHostRequirements(record, game);
     // Re-picking the current game keeps its settings - so a host reopening a "host this game"
     // link, or tapping the same card twice, doesn't silently reset what they configured.
     if (record.selection?.gameId === game.slug) return;
@@ -372,58 +517,98 @@ export const clearGameSelection = (credential: SessionCredential): Promise<void>
     await commit(record, { selection: null });
   });
 
-export const startGame = (credential: SessionCredential): Promise<void> =>
-  withLock(credential.code, async () => {
-    requireHost(credential);
-    const record = await requireSession(credential.code);
+// Sessions whose game is between its checks and its first state (i.e. preparing). Process-local,
+// like the locks.
+const startingSessions = new Set<string>();
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyGameDefinition = GameDefinition<any, any, any>;
+
+const runPrepare = async (definition: AnyGameDefinition, setup: GameSetupContext): Promise<unknown> => {
+  if (!definition.prepare) return undefined;
+  const controller = new AbortController();
+  const timedOut = new Promise<never>((_, reject) =>
+    controller.signal.addEventListener('abort', () =>
+      reject(new GameSessionError('GAME_SETUP_FAILED', 'Getting the game ready took too long - try again')),
+    ),
+  );
+  const timer = setTimeout(() => controller.abort(), GAME_PREPARE_TIMEOUT_MS);
+  timer.unref?.();
+  try {
+    return await Promise.race([definition.prepare({ ...setup, signal: controller.signal }), timedOut]);
+  } catch (error) {
+    if (isGameSessionError(error)) throw error;
+    console.error(`Preparing game "${definition.id}" failed:`, error);
+    throw new GameSessionError('GAME_SETUP_FAILED', 'Something went wrong getting the game ready - try again');
+  } finally {
+    clearTimeout(timer);
+  }
+};
+
+// Two locked passes around an unlocked prepare: a game's prepare may hit the network for seconds
+// (iPod War pages through a playlist), and holding the session's lock that long would stall every
+// join and connection change behind it. The second pass re-checks what the first established, so
+// the game only starts with exactly the selection and settings that were prepared for.
+export const startGame = async (credential: SessionCredential): Promise<void> => {
+  requireHost(credential);
+  const { code } = credential;
+
+  const { definition, gameId, setup } = await withLock(code, async () => {
+    if (startingSessions.has(code)) throw new GameSessionError('GAME_STARTING', 'The game is already starting');
+    const record = await requireSession(code);
     requireLobby(record);
     const selection = requireSelection(record);
     const game = await requireCatalogGame(selection.gameId);
+    requirePlayerCount(record, game);
 
-    const playerCount = record.participants.length;
-    if (playerCount < game.minPlayers || playerCount > game.maxPlayers) {
-      throw new GameSessionError('INVALID_PLAYER_COUNT', `${game.title} needs ${game.minPlayers}-${game.maxPlayers} players`);
-    }
-
-    const definition = getGameDefinition(game.slug);
-    if (!definition) throw new GameSessionError('GAME_NOT_PLAYABLE', `${game.title} isn't playable yet`);
+    const found = getGameDefinition(game.slug);
+    if (!found) throw new GameSessionError('GAME_NOT_PLAYABLE', `${game.title} isn't playable yet`);
+    await requireHostRequirements(record, game);
 
     // Re-resolved rather than trusted as stored, in case the catalogue record changed since the
     // host configured it.
     const settings = resolveGameSettings(game.settings, selection.settings);
-    const startedAt = now();
-    const setup = { participants: toSessionSnapshot(record).participants, settings, now: startedAt };
-    definition.validateSettings?.(setup);
+    const [missing] = findMissingRequiredSettings(game.settings, settings);
+    if (missing) throw new GameSessionError('SETTING_REQUIRED', `Choose a ${missing.label.toLowerCase()} first`);
 
-    const next = await commit(record, {
-      status: 'in-game',
-      selection: { ...selection, settings },
-      game: { gameId: game.slug, state: definition.createInitialState(setup), startedAt },
-    });
-    await publishPrivateViews(next);
+    const context: GameSetupContext = { participants: toParticipants(record), settings, now: now(), hostUserId: record.hostUserId };
+    found.validateSettings?.(context);
+    startingSessions.add(code);
+    return { definition: found, gameId: game.slug, setup: context };
   });
+
+  try {
+    const prepared = await runPrepare(definition, setup);
+    await withLock(code, async () => {
+      const record = await requireSession(code);
+      requireLobby(record);
+      const selection = requireSelection(record);
+      const game = await requireCatalogGame(selection.gameId);
+      if (game.slug !== gameId || !sameSettings(resolveGameSettings(game.settings, selection.settings), setup.settings)) {
+        throw new GameSessionError('INVALID_SETTINGS', 'The game changed while it was starting - press Start again');
+      }
+      requirePlayerCount(record, game);
+
+      const startedAt = now();
+      const context: GameSetupContext = { ...setup, participants: toParticipants(record), now: startedAt };
+      await commit(record, {
+        status: 'in-game',
+        selection: { ...selection, settings: setup.settings },
+        game: { gameId, state: definition.createInitialState(context, prepared), startedAt },
+      });
+    });
+  } finally {
+    startingSessions.delete(code);
+  }
+};
 
 export const dispatchGameAction = (credential: SessionCredential, action: GameAction): Promise<void> =>
   withLock(credential.code, async () => {
+    // Straight off the socket. 'system:' types are the service's own (SYSTEM_ACTIONS) - no client
+    // may send one, whatever the game would make of it.
+    if (typeof action?.type !== 'string' || !action.type || action.type.startsWith('system:')) {
+      throw new GameSessionError('INVALID_ACTION', 'Unknown game action');
+    }
     const record = await requireSession(credential.code);
-    if (!record.game) throw new GameSessionError('NO_ACTIVE_GAME', 'No game is in progress');
-    const definition = getGameDefinition(record.game.gameId);
-    if (!definition) throw new GameSessionError('GAME_NOT_FOUND', `Unknown game "${record.game.gameId}"`);
-
-    const actor: GameActor = { role: credential.role, participantId: credential.participantId };
-    const participants = toSessionSnapshot(record).participants;
-    const result = definition.handleAction(record.game.state, action, { participants, actor, now: now() });
-
-    const scores = { ...record.scores };
-    Object.entries(result.scoreDeltas ?? {}).forEach(([participantId, delta]) => {
-      scores[participantId] = (scores[participantId] ?? 0) + delta;
-    });
-
-    const next = await commit(
-      record,
-      result.complete
-        ? { status: 'lobby', game: null, scores }
-        : { game: { ...record.game, state: result.state }, scores },
-    );
-    await publishPrivateViews(next);
+    await applyGameAction(record, { role: credential.role, participantId: credential.participantId }, action);
   });

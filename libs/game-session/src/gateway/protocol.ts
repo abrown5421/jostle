@@ -74,6 +74,10 @@ export interface SessionWelcomeMessage {
   readonly role: SessionRole;
   readonly participantId: string | null;
   readonly session: SessionSnapshot;
+  // This seat's view of the running game - the host's `game:host` payload or this player's
+  // `game:private` one - so a reconnecting device needn't wait for the next change. Null when no
+  // game is running (or the game has no such view).
+  readonly gameView: unknown;
 }
 
 export interface SessionEventMessage<TPayload = unknown> {
@@ -86,6 +90,8 @@ export interface SessionErrorMessage {
   readonly type: 'error';
   readonly code: GameSessionErrorCode | 'MALFORMED_MESSAGE' | 'UNKNOWN_MESSAGE' | 'INTERNAL_ERROR';
   readonly message: string;
+  // GameSessionError.details, when there are any (e.g. which requirement wasn't met).
+  readonly details?: Readonly<Record<string, unknown>>;
 }
 
 export type SessionServerMessage = SessionWelcomeMessage | SessionEventMessage | SessionErrorMessage;

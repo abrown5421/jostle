@@ -4,6 +4,7 @@ import {
   type OAuth2IntegrationProvider,
   type OAuthTokenSet,
 } from '../../contracts/integration-provider.contract';
+import { listSpotifyPlaylists } from './spotify.api';
 
 const AUTHORIZE_URL = 'https://accounts.spotify.com/authorize';
 const TOKEN_URL = 'https://accounts.spotify.com/api/token';
@@ -54,6 +55,22 @@ const profileResponseSchema = z.object({
   product: z.string().optional(),
   country: z.string().optional(),
 });
+
+// What a feature can require of a linked Spotify account (see GameRequirement.capabilities).
+const evaluateSpotifyCapability = (capability: string, metadata: Record<string, unknown>): string | null => {
+  switch (capability) {
+    case 'playlists':
+      return null;
+    case 'playback':
+      // The Web Playback SDK refuses anything but Premium.
+      if (metadata['product'] === 'premium') return null;
+      return metadata['product']
+        ? 'Spotify Premium is required to play music on the host screen.'
+        : 'Reconnect Spotify so we can confirm your Premium subscription.';
+    default:
+      return `Spotify can't provide "${capability}".`;
+  }
+};
 
 const requestToken = async (body: Record<string, string>): Promise<z.infer<typeof tokenResponseSchema>> => {
   const { SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET } = getEnv();
@@ -141,4 +158,6 @@ export const spotifyProvider: OAuth2IntegrationProvider = {
     metadata['product'] && metadata['product'] !== 'premium'
       ? ['Spotify Premium is required to play music in the browser. You can still browse your playlists.']
       : [],
+  evaluateCapability: evaluateSpotifyCapability,
+  resources: { playlist: { list: listSpotifyPlaylists } },
 };

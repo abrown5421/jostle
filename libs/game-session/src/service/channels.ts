@@ -26,6 +26,8 @@ export const SESSION_EVENTS = {
   participantRemoved: 'participant:removed',
   // payload: a GameDefinition's privateView(state, participantId) - on that participant's channel.
   gamePrivate: 'game:private',
+  // payload: a GameDefinition's hostView(state) - on the host channel only.
+  gameHost: 'game:host',
 } as const;
 
 export type SessionEndReason = 'host-ended' | 'host-disconnected';

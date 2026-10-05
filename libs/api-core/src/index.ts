@@ -37,4 +37,5 @@ export const registerCoreRoutes = (app: Express): void => {
 };
 
 export { createCrudService } from './services/createCrudService';
+export { configureGameRuntime } from './games/configureGameRuntime';
 export type { CrudRepository, CrudService } from './services/createCrudService';

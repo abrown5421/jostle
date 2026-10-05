@@ -35,6 +35,24 @@ export interface IntegrationProviderPresentation {
   manageAccessUrl?: string;
 }
 
+// One thing a user owns at a provider that a feature can let them pick (a Spotify playlist, ...).
+export interface IntegrationResource {
+  id: string;
+  name: string;
+  imageUrl?: string;
+  // How many items it holds (songs in a playlist) - as the provider reports it, so possibly
+  // counting items a feature can't use; whoever consumes the resource re-counts.
+  itemCount: number;
+  ownerName?: string;
+  // False when the provider won't let this app use it (e.g. someone else's playlist), with why.
+  selectable: boolean;
+  unselectableReason?: string;
+}
+
+export interface IntegrationResourceSource {
+  list: (accessToken: string, account: { externalAccountId: string }) => Promise<IntegrationResource[]>;
+}
+
 export interface OAuth2IntegrationProvider {
   readonly id: string;
   readonly kind: 'oauth2';
@@ -53,11 +71,29 @@ export interface OAuth2IntegrationProvider {
   // Provider-specific caveats about a linked account (e.g. "Spotify Premium is required for
   // playback"), derived from its stored, non-secret metadata.
   describeConnection?: (metadata: Record<string, unknown>) => string[];
+  // Whether a linked account has a provider-defined capability a feature requires (e.g. Spotify's
+  // 'playback', which needs Premium), judged from its stored, non-secret metadata. Returns null
+  // when it does, otherwise a user-facing reason it doesn't. Unknown capabilities are unmet.
+  evaluateCapability?: (capability: string, metadata: Record<string, unknown>) => string | null;
+  // Lists of the user's own things at the provider, by resource name (e.g. 'playlist').
+  resources?: Readonly<Record<string, IntegrationResourceSource>>;
 }
 
 // A discriminated union of one today - a new credential style (API key, ...) becomes a new
 // member keyed by its own `kind`, without disturbing OAuth providers.
 export type IntegrationProvider = OAuth2IntegrationProvider;
+
+// Thrown by a provider's API helpers for a failed request, carrying the HTTP status so callers can
+// tell "expired token, refresh and retry" (401) from "you can't have that" (403/404).
+export class IntegrationRequestError extends Error {
+  readonly status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = 'IntegrationRequestError';
+    this.status = status;
+  }
+}
 
 // Thrown by a provider when the remote side permanently rejects our credentials (revoked access,
 // expired refresh token) - the service marks the row 'needs-reauth' instead of retrying forever.

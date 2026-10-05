@@ -13,19 +13,38 @@ const ipodWarGameSeed: CreateGameInput = {
   estimatedMinutes: 30,
   tags: ['music', 'trivia', 'speed'],
   rules: [
-    { title: 'Listen', description: 'A random song from the bank plays on the host screen for the playback time.' },
+    {
+      title: 'Listen',
+      description: 'A random clip of a song from the bank plays on the host screen for the playback time.',
+    },
     {
       title: 'Answer',
-      description: 'Type the song title on your device - plus the artist and album when those are turned on.',
+      description:
+        'Type the song title on your device - plus the artist and album when those are turned on - then lock in. You only get one shot per song.',
     },
     {
       title: 'Score',
       description:
-        'Answers are graded for completeness and speed. The difficulty (1-10) decides how forgiving the grading is - low difficulty accepts typos and partial answers, high difficulty wants them exact.',
+        'Every correct answer is worth 100 points, plus up to 50 more the faster you locked in. The difficulty (1-10) decides how forgiving the grading is - low difficulty accepts typos, 10 wants them exact.',
+    },
+    {
+      title: 'Reveal',
+      description: 'When the clip ends the answers and the leaderboard are revealed, then the next song starts.',
     },
     { title: 'Win', description: 'After the last song in the bank, the highest score wins.' },
   ],
   settings: [
+    {
+      key: 'playlistId',
+      label: 'Playlist',
+      description: 'One of your Spotify playlists with at least as many songs as the bank needs.',
+      type: 'integration-resource',
+      default: '',
+      provider: 'spotify',
+      resource: 'playlist',
+      required: true,
+      minItemsFromSetting: 'songCount',
+    },
     { key: 'songCount', label: 'Songs', type: 'number', default: 60, min: 30, max: 180, step: 1, unit: 'songs' },
     {
       key: 'playbackSeconds',
@@ -36,6 +55,24 @@ const ipodWarGameSeed: CreateGameInput = {
       min: 30,
       max: 180,
       step: 5,
+      unit: 'seconds',
+    },
+    {
+      key: 'endWhenAllAnswered',
+      label: 'End early when everyone’s in',
+      description: 'Skip to the reveal as soon as every player has locked in, instead of playing out the clip.',
+      type: 'boolean',
+      default: true,
+    },
+    {
+      key: 'revealSeconds',
+      label: 'Reveal time',
+      description: 'How long the answers and leaderboard show before the next song.',
+      type: 'number',
+      default: 10,
+      min: 5,
+      max: 30,
+      step: 1,
       unit: 'seconds',
     },
     { key: 'nameArtist', label: 'Name the artist', type: 'boolean', default: true },
@@ -51,8 +88,11 @@ const ipodWarGameSeed: CreateGameInput = {
       step: 1,
     },
   ],
+  // Songs come from the host's playlists and play through the Spotify Web Playback SDK on the host
+  // screen, which only works for Premium accounts.
+  requirements: [{ kind: 'integration', provider: 'spotify', capabilities: ['playlists', 'playback'] }],
   order: 10,
-  seedVersion: 2,
+  seedVersion: 3,
   isPublished: true,
 };
 

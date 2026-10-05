@@ -1,11 +1,12 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Box, Button, Loader, Text, useNavigateWithTransition } from '@inithium/ui';
-import { sendGameSessionMessage, usePageParams } from '@inithium/api-client';
+import { sendGameSessionMessage, useGetGameQuery, usePageParams } from '@inithium/api-client';
 import { SessionSettingsView } from './session/SessionSettingsView';
 import { useHostSession } from './session/useHostSession';
 import { useParticipantSounds } from './session/useParticipantSounds';
 import { SECONDARY_BUTTON_PROPS, SURFACE_TEXT } from './games/surfaceColors';
+import { firstHostBlocker, resolveRequirementPath } from './games/requirements';
 
 const CenteredMessage = ({ title, body, onHost, onHome }: { title: string; body: string; onHost: () => void; onHome: () => void }) => (
   <Box flex={{ direction: 'col', align: 'center', justify: 'center', gap: 16 }} padding={{ base: 32 }} className="flex-1 text-center">
@@ -46,6 +47,20 @@ export const SessionSettingsPage = () => {
   useEffect(() => {
     if (isOwnSession && !hasSelection) navigate('/games');
   }, [isOwnSession, hasSelection, navigate]);
+
+  // Once the game is running, the host screen is where it plays.
+  const isInGame = isOwnSession && session?.status === 'in-game';
+  useEffect(() => {
+    if (isInGame) navigate('/host');
+  }, [isInGame, navigate]);
+
+  // A game this host can't host yet (e.g. Spotify not connected) - send them to fix that first,
+  // coming back here afterwards.
+  const { data: selectedGame } = useGetGameQuery(session?.selection?.gameId ?? '', { skip: !isOwnSession || !hasSelection });
+  const blocked = Boolean(isOwnSession && firstHostBlocker(selectedGame));
+  useEffect(() => {
+    if (blocked && userId) navigate(resolveRequirementPath(userId, location.pathname));
+  }, [blocked, userId, navigate, location.pathname]);
 
   useParticipantSounds(isOwnSession ? session?.participants : undefined);
 
@@ -88,6 +103,7 @@ export const SessionSettingsPage = () => {
       onStart={() => sendGameSessionMessage({ type: 'host:start-game' })}
       onChooseGame={() => navigate('/games')}
       onBack={() => navigate('/host')}
+      lastError={live.lastError}
     />
   );
 };

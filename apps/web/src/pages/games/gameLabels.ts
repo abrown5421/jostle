@@ -12,5 +12,8 @@ export const formatSettingValue = (definition: GameSettingDefinition, value: Gam
       return value ? 'On' : 'Off';
     case 'select':
       return definition.options.find((option) => option.value === value)?.label ?? String(value);
+    case 'integration-resource':
+      // Only an opaque id is stored - the picker shows the resource itself.
+      return value ? 'Chosen' : 'Not chosen';
   }
 };

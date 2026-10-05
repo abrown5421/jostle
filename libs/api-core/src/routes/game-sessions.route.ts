@@ -26,11 +26,13 @@ const toAppError = (error: GameSessionError): AppError => {
     case 'GAME_NOT_FOUND':
       return NotFoundError(error.message, { code: error.code });
     case 'NOT_AUTHORIZED':
-      return ForbiddenError(error.message, { code: error.code });
+    case 'REQUIREMENTS_NOT_MET':
+      return ForbiddenError(error.message, { code: error.code, ...error.details });
     case 'INVALID_NAME':
     case 'INVALID_ACTION':
     case 'INVALID_PLAYER_COUNT':
     case 'INVALID_SETTINGS':
+    case 'SETTING_REQUIRED':
       return ValidationError(error.message, { code: error.code });
     default:
       return ConflictError(error.message, { code: error.code });

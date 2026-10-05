@@ -239,6 +239,9 @@ export {
   ChangePasswordDialog,
   AvatarEditDialog,
   BannerEditDialog,
+  CountdownBar,
+  Leaderboard,
+  Podium,
 // inithium:block:cms:composites:start
   SearchFilterBar,
   ListRow,
@@ -262,6 +265,11 @@ export type {
   ChangePasswordDialogProps,
   AvatarEditDialogProps,
   BannerEditDialogProps,
+  CountdownBarProps,
+  LeaderboardProps,
+  LeaderboardRow,
+  PodiumProps,
+  PodiumEntry,
 // inithium:block:cms:composite-types:start
   SearchFilterBarProps,
   SearchFilterFieldOption,

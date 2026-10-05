@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { alert, Box, Button, Loader, Text, useNavigateWithTransition } from '@inithium/ui';
 import {
   clearPlayerCredential,
@@ -11,6 +11,8 @@ import {
   usePageParams,
 } from '@inithium/api-client';
 import type { GameSessionClientState } from '@inithium/api-client';
+import { getWebGameModule } from '../games/registry';
+import type { WebGameAction } from '../games/registry';
 import { GameMedia } from './games/GameMedia';
 import { SURFACE_TEXT } from './games/surfaceColors';
 
@@ -23,13 +25,15 @@ const resolveClosedMessage = ({ closeReason, closeDetail }: GameSessionClientSta
 
 // A player's own device, after joining. The seat token comes from this device's storage (written
 // by JoinPage), so a refresh or a phone waking a killed tab lands straight back in the session.
-// Today this is just the lobby; a game's controller UI renders here once games exist.
+// In the lobby it shows what's coming up; while a game runs, that game's own PlayerController
+// (apps/web/src/games/<id>) takes over.
 export const PlayPage = () => {
   const navigate = useNavigateWithTransition();
   const code = (usePageParams()['code'] ?? '').toUpperCase();
   const credential = useMemo(() => (code ? getPlayerCredential(code) : null), [code]);
   const sessionState = useGameSession();
-  const { status, session, closeReason, lastError } = sessionState;
+  const { status, session, closeReason, lastError, participantId, privateView } = sessionState;
+  const sendAction = useCallback((action: WebGameAction) => sendGameSessionMessage({ type: 'game:action', action }), []);
   // The host's pick arrives on the same session snapshot as everything else - shown here so
   // players know what's coming while the host configures it.
   const selectedGameId = session?.selection?.gameId;
@@ -73,6 +77,20 @@ export const PlayPage = () => {
       <Box flex={{ justify: 'center', align: 'center' }} className="flex-1">
         <Loader variant="spinner" color={{ color: 'primary', intensity: 500 }} label="Connecting…" />
       </Box>
+    );
+  }
+
+  const gameModule = session.status === 'in-game' && session.game ? getWebGameModule(session.game.gameId) : undefined;
+  if (session.game && gameModule && participantId) {
+    return (
+      <gameModule.PlayerController
+        session={session}
+        publicView={session.game.view}
+        privateView={privateView}
+        participantId={participantId}
+        status={status}
+        sendAction={sendAction}
+      />
     );
   }
 
