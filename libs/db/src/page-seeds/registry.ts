@@ -1,0 +1,36 @@
+import type { CreatePageInput } from '../contracts/page.contract';
+import homePageSeed from './home.page-seed';
+import loginPageSeed from './login.page-seed';
+import signupPageSeed from './signup.page-seed';
+import privacyPolicyPageSeed from './privacy-policy.page-seed';
+import profilePageSeed from './profile.page-seed';
+import hostPageSeed from './host.page-seed';
+import joinPageSeed from './join.page-seed';
+import playPageSeed from './play.page-seed';
+import gamesPageSeed from './games.page-seed';
+import sessionSettingsPageSeed from './session-settings.page-seed';
+// inithium:anchor:imports
+
+// Every page the app should always have a Page DB record for, reconciled once at API startup by
+// ensureSeededPages(). Keyed by slug at reconcile time - slug is the one field the CMS's Pages
+// module treats as immutable (see PageEditDialog's "not editable here" note), so it's the
+// natural idempotency key: a page already present is left completely alone, even if every other
+// field has since been hand-edited by an admin.
+//
+// A plugin adding its own page(s) appends its own seed(s) to this array via a merge-strategy
+// injection anchored below - there's no Vite-style import.meta.glob equivalent available on the
+// Node-run backend for zero-edit auto-discovery, so this stays an explicit list rather than a
+// directory scan.
+export const pageSeeds: CreatePageInput[] = [
+  homePageSeed,
+  loginPageSeed,
+  signupPageSeed,
+  privacyPolicyPageSeed,
+  profilePageSeed,
+  hostPageSeed,
+  joinPageSeed,
+  playPageSeed,
+  gamesPageSeed,
+  sessionSettingsPageSeed,
+  // inithium:anchor:seeds
+];
