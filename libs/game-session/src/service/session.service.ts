@@ -162,10 +162,16 @@ const syncGameTimer = (record: GameSessionRecord): void => {
   gameTimers.set(record.code, timer);
 };
 
-const commit = async (record: GameSessionRecord, changes: Partial<GameSessionRecord>): Promise<GameSessionRecord> => {
+// `broadcast: false` stores a change no screen needs to see (see GameActionResult.silent).
+const commit = async (
+  record: GameSessionRecord,
+  changes: Partial<GameSessionRecord>,
+  { broadcast = true }: { broadcast?: boolean } = {},
+): Promise<GameSessionRecord> => {
   const next: GameSessionRecord = { ...record, ...changes, version: record.version + 1, updatedAt: now() };
   await store().save(next);
   syncGameTimer(next);
+  if (!broadcast) return next;
   await publishToChannel(sessionChannel(next.code), SESSION_EVENTS.updated, toSessionSnapshot(next));
   await publishGameViews(next);
   return next;
@@ -192,6 +198,7 @@ const applyGameAction = async (record: GameSessionRecord, actor: GameActor, acti
   return commit(
     record,
     result.complete ? { status: 'lobby', game: null, scores } : { game: { ...game, state: result.state }, scores },
+    { broadcast: !result.silent || result.complete === true || deltas.length > 0 },
   );
 };
 

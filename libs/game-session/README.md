@@ -93,6 +93,15 @@ to the database in `apps/api/src/main.ts`), so it never imports a database drive
    - `hostView(state)` - what only the host screen sees.
    - React to `SYSTEM_ACTIONS` (`system:participants-changed`, `system:host-connection`). Clients
      can never send `system:*` actions.
+   - Return `silent: true` from `handleAction` for a change no screen needs to see (Point of Hue's
+     streamed picker colors): it's stored without broadcasting. Score deltas and completion always
+     broadcast.
+   - A timed, round-based game (iPod War, Point of Hue) builds on `src/games/shared`: the
+     `TimedPhaseState` fields plus `enterTimedPhase` / `pausePhase` / `resumePhase` /
+     `phaseTimeout` (its `nextTimeout`) / `isCurrentTimer` for phase timing, and `toStandings` /
+     `everyConnectedRosterMember` / `pruneRoster` for its roster. Its web screens likewise reuse
+     `apps/web/src/games/shared/stage.tsx` (header + host controls, lock-in grid, leaderboard rows,
+     final results).
 3. **Host requirements** (optional) - list them on the catalogue record's `requirements` (e.g.
    `{ kind: 'integration', provider: 'spotify', capabilities: ['playback'] }`). They're
    evaluated per user by the injected `GameRequirementEvaluator` (`setGameRequirementEvaluator`)

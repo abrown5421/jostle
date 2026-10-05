@@ -15,7 +15,13 @@ const pointOfHueGameSeed: CreateGameInput = {
   rules: [
     { title: 'Look', description: 'A color swatch shows on the host screen for the viewing time.' },
     { title: 'Match', description: 'Once it’s gone, use the color picker on your device to recreate it before the guessing time runs out.' },
-    { title: 'Score', description: 'Answers are graded on accuracy, completeness, and how quickly you locked in.' },
+    {
+      title: 'Score',
+      description:
+        'Up to 100 points for how close your color looks to the original, plus up to 50 more the sooner you lock in - the bonus shrinks the further off you are. Didn’t lock in? Whatever’s on your picker when time runs out still counts, just without the bonus.',
+    },
+    { title: 'Reveal', description: 'Everyone’s color is shown next to the original, then the next round starts.' },
+    { title: 'Win', description: 'After the last round, the highest score wins.' },
   ],
   settings: [
     { key: 'rounds', label: 'Rounds', type: 'number', default: 10, min: 5, max: 60, step: 1, unit: 'rounds' },
@@ -41,10 +47,28 @@ const pointOfHueGameSeed: CreateGameInput = {
       step: 5,
       unit: 'seconds',
     },
+    {
+      key: 'endWhenAllAnswered',
+      label: 'End early when everyone’s in',
+      description: 'Skip to the reveal as soon as every player has locked in, instead of waiting out the guessing time.',
+      type: 'boolean',
+      default: true,
+    },
+    {
+      key: 'revealSeconds',
+      label: 'Reveal time',
+      description: 'How long the results and leaderboard show before the next round.',
+      type: 'number',
+      default: 10,
+      min: 5,
+      max: 30,
+      step: 1,
+      unit: 'seconds',
+    },
   ],
   requirements: [],
   order: 20,
-  seedVersion: 2,
+  seedVersion: 3,
   isPublished: true,
 };
 

@@ -1,11 +1,11 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { Alert, Avatar, Box, Button, CountdownBar, Icon, Leaderboard, Podium, Text, dialog } from '@inithium/ui';
+import { Alert, Box, Button, CountdownBar, Icon, Leaderboard, Text } from '@inithium/ui';
 import { getGameSessionServerNow } from '@inithium/api-client';
-import type { SessionParticipant } from '@inithium/api-client';
-import type { IpodWarHostView, IpodWarPublicView, IpodWarStanding } from '@inithium/game-session';
+import type { IpodWarHostView, IpodWarPublicView } from '@inithium/game-session';
 import type { HostStageProps } from '../registry';
-import { participantsById, resolveParticipantAvatarProps } from '../shared/participants';
-import { GHOST_BUTTON_PROPS, SECONDARY_BUTTON_PROPS, SURFACE_BG, SURFACE_BORDER, SURFACE_TEXT } from '../../pages/games/surfaceColors';
+import { participantsById } from '../shared/participants';
+import { AUTO_PAUSED_NOTICE, deadlineOf, FinalResults, LockInGrid, StageHeader, StagePanel, toLeaderboardRows } from '../shared/stage';
+import { SECONDARY_BUTTON_PROPS, SURFACE_TEXT } from '../../pages/games/surfaceColors';
 import { activateSpotifyPlayer } from './spotifyPlayer';
 import { useIpodWarAudio } from './useIpodWarAudio';
 
@@ -15,53 +15,11 @@ const SLOW_LOAD_MS = 8_000;
 // @inithium/game-session in the browser, only its types.
 const COUNTDOWN_MS = 5_000;
 
-const deadlineOf = (view: { phaseEndsAt: string | null }): number | null => (view.phaseEndsAt ? Date.parse(view.phaseEndsAt) : null);
-
-const toLeaderboardRows = (standings: readonly IpodWarStanding[], people: Map<string, SessionParticipant>, avatarSize: number) =>
-  standings.map((standing) => {
-    const participant = people.get(standing.participantId);
-    const name = participant?.name ?? 'Former player';
-    return {
-      id: standing.participantId,
-      name,
-      score: standing.total,
-      rank: standing.rank,
-      delta: standing.delta,
-      leading: <Avatar {...resolveParticipantAvatarProps({ name, avatar: participant?.avatar ?? null })} size={avatarSize} />,
-    };
-  });
-
 const SpotifyAttribution = () => (
   <Text as="span" className="inline-flex items-center gap-1 text-xs font-medium" textColor={SURFACE_TEXT}>
     <Icon as="span" name="SpotifyLogo" size={16} weight="fill" />
     Playing on Spotify
   </Text>
-);
-
-const Panel = ({ children, className }: { children: ReactNode; className?: string }) => (
-  <Box flex={{ direction: 'col', gap: 16 }} padding={{ base: 24 }} bgColor={SURFACE_BG} borderColor={SURFACE_BORDER} className={`rounded-xl ${className ?? ''}`}>
-    {children}
-  </Box>
-);
-
-// Who has locked in this song - names only, never what they answered.
-const LockInGrid = ({ view, people }: { view: IpodWarPublicView; people: Map<string, SessionParticipant> }) => (
-  <ul className="flex flex-wrap justify-center gap-4">
-    {view.roster.map((participantId) => {
-      const participant = people.get(participantId);
-      const isIn = view.lockedIn.includes(participantId);
-      const name = participant?.name ?? 'Player';
-      return (
-        <li key={participantId} className={`flex w-20 flex-col items-center gap-1 transition-opacity ${isIn ? '' : 'opacity-40'}`}>
-          <Avatar {...resolveParticipantAvatarProps({ name, avatar: participant?.avatar ?? null })} size={56} status={participant?.isConnected ? 'online' : 'offline'} />
-          <Text as="span" className="w-full truncate text-center text-sm font-medium" textColor={SURFACE_TEXT}>
-            {name}
-          </Text>
-          {isIn && <Icon as="span" name="CheckCircle" size={18} weight="fill" className="text-green-600" />}
-        </li>
-      );
-    })}
-  </ul>
 );
 
 const useIsSlow = (key: string, active: boolean): boolean => {
@@ -83,7 +41,6 @@ export const HostStage = ({ session, publicView, hostView, status, sendAction }:
   const people = participantsById(session.participants);
   const audio = useIpodWarAudio(host, sendAction);
   const isOpen = status === 'open';
-  const send = (type: string) => () => sendAction({ type });
 
   const isLoading = view.phase === 'loading';
   const isSlowToLoad = useIsSlow(`${view.songNumber}:${host?.playback.attempt ?? 0}`, isLoading && !view.paused);
@@ -100,16 +57,6 @@ export const HostStage = ({ session, publicView, hostView, status, sendAction }:
     void activateSpotifyPlayer();
     sendAction({ type: 'retry-playback' });
   };
-  const endGame = async () => {
-    const confirmed = await dialog.confirm({
-      title: 'End the game?',
-      description: 'Everyone goes straight to the final results. The song in progress won’t be scored.',
-      confirmLabel: 'End game',
-      cancelLabel: 'Keep playing',
-      confirmVariant: { kind: 'filled', color: 'red' },
-    });
-    if (confirmed) sendAction({ type: 'end' });
-  };
 
   const notices: ReactNode[] = [];
   if (audio.player.status === 'unsupported') {
@@ -117,51 +64,34 @@ export const HostStage = ({ session, publicView, hostView, status, sendAction }:
   } else if (audio.player.status === 'error' && audio.player.error) {
     notices.push(audio.player.error.message);
   }
-  if (view.paused && view.autoPaused) notices.push('Paused because this screen lost its connection. Press Resume when you’re ready.');
+  if (view.paused && view.autoPaused) notices.push(AUTO_PAUSED_NOTICE);
   if (playbackError) notices.push(`Spotify: ${playbackError}`);
 
   return (
     <Box flex={{ direction: 'col', gap: 24 }} padding={{ base: 24 }} className="w-full flex-1">
-      <Box flex={{ direction: 'row', justify: 'between', align: 'center', gap: 16, wrap: 'wrap' }}>
-        <Box flex={{ direction: 'row', align: 'center', gap: 12 }}>
-          {view.playlist.imageUrl ? (
+      <StageHeader
+        media={
+          view.playlist.imageUrl ? (
             <img src={view.playlist.imageUrl} alt="" className="h-12 w-12 rounded object-cover" />
           ) : (
             <Icon as="span" name="MusicNotes" size={40} />
-          )}
-          <Box flex={{ direction: 'col' }}>
-            <Text as="h1" className="text-xl font-bold" textColor={SURFACE_TEXT}>
-              iPod War · {view.playlist.name}
-            </Text>
-            <Text as="span" className="text-sm" textColor={SURFACE_TEXT}>
-              {view.phase === 'final' ? `${view.songCount} songs` : `Song ${view.songNumber} of ${view.songCount}`} · Room code{' '}
-              <span className="font-mono font-bold tracking-widest">{session.code}</span>
-            </Text>
-          </Box>
-        </Box>
-        <Box flex={{ direction: 'row', align: 'center', gap: 8, wrap: 'wrap' }}>
-          <SpotifyAttribution />
-          {view.phase !== 'final' && (
-            <>
-              {view.paused ? (
-                <Button variant={{ kind: 'filled', color: 'primary' }} disabled={!isOpen} onClick={resume} entryAdornment={<Icon as="span" name="Play" size={16} weight="fill" />}>
-                  Resume
-                </Button>
-              ) : (
-                <Button {...SECONDARY_BUTTON_PROPS} disabled={!isOpen} onClick={send('pause')} entryAdornment={<Icon as="span" name="Pause" size={16} weight="fill" />}>
-                  Pause
-                </Button>
-              )}
-              <Button {...SECONDARY_BUTTON_PROPS} disabled={!isOpen} onClick={send('skip')} entryAdornment={<Icon as="span" name="SkipForward" size={16} weight="fill" />}>
-                Skip
-              </Button>
-              <Button {...GHOST_BUTTON_PROPS} disabled={!isOpen} onClick={() => void endGame()}>
-                End game
-              </Button>
-            </>
-          )}
-        </Box>
-      </Box>
+          )
+        }
+        title={`iPod War · ${view.playlist.name}`}
+        subtitle={
+          <>
+            {view.phase === 'final' ? `${view.songCount} songs` : `Song ${view.songNumber} of ${view.songCount}`} · Room code{' '}
+            <span className="font-mono font-bold tracking-widest">{session.code}</span>
+          </>
+        }
+        extra={<SpotifyAttribution />}
+        isFinal={view.phase === 'final'}
+        paused={view.paused}
+        isOpen={isOpen}
+        sendAction={sendAction}
+        onResume={resume}
+        endDescription="Everyone goes straight to the final results. The song in progress won’t be scored."
+      />
 
       {notices.map((notice, index) => (
         <Alert key={index} severity="warning" closeable={false} duration={0} message={notice} />
@@ -183,7 +113,7 @@ export const HostStage = ({ session, publicView, hostView, status, sendAction }:
       )}
 
       {view.phase === 'countdown' && (
-        <Panel className="flex-1 items-center justify-center text-center">
+        <StagePanel className="flex-1 items-center justify-center text-center">
           <Text as="p" className="text-sm font-bold uppercase tracking-widest" textColor={SURFACE_TEXT}>
             Get ready
           </Text>
@@ -191,11 +121,11 @@ export const HostStage = ({ session, publicView, hostView, status, sendAction }:
             {view.songCount} songs from “{view.playlist.name}”
           </Text>
           <CountdownBar endsAt={deadlineOf(view)} pausedRemainingMs={view.pausedRemainingMs} totalMs={COUNTDOWN_MS} now={getGameSessionServerNow} className="max-w-xl" />
-        </Panel>
+        </StagePanel>
       )}
 
       {(view.phase === 'loading' || view.phase === 'playing') && (
-        <Panel className="flex-1 items-center justify-center text-center">
+        <StagePanel className="flex-1 items-center justify-center text-center">
           <Icon as="span" name="MusicNotes" size={72} className={view.phase === 'playing' && !view.paused ? 'animate-pulse' : ''} />
           <Text as="h2" className="text-5xl font-black" textColor={SURFACE_TEXT}>
             Song {view.songNumber}
@@ -210,7 +140,7 @@ export const HostStage = ({ session, publicView, hostView, status, sendAction }:
                   <Button variant={{ kind: 'filled', color: 'primary' }} disabled={!isOpen} onClick={retry}>
                     Retry
                   </Button>
-                  <Button {...SECONDARY_BUTTON_PROPS} disabled={!isOpen} onClick={send('skip')}>
+                  <Button {...SECONDARY_BUTTON_PROPS} disabled={!isOpen} onClick={() => sendAction({ type: 'skip' })}>
                     Skip this song
                   </Button>
                 </Box>
@@ -219,16 +149,13 @@ export const HostStage = ({ session, publicView, hostView, status, sendAction }:
           ) : (
             <CountdownBar endsAt={deadlineOf(view)} pausedRemainingMs={view.pausedRemainingMs} totalMs={view.playbackMs} now={getGameSessionServerNow} className="max-w-2xl" />
           )}
-          <Text as="p" className="text-sm font-medium" textColor={SURFACE_TEXT}>
-            {view.lockedIn.length} of {view.roster.length} locked in
-          </Text>
-          <LockInGrid view={view} people={people} />
-        </Panel>
+          <LockInGrid roster={view.roster} lockedIn={view.lockedIn} people={people} />
+        </StagePanel>
       )}
 
       {view.phase === 'reveal' && view.answer && (
         <div className="grid flex-1 grid-cols-1 gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-          <Panel className="items-center justify-center text-center">
+          <StagePanel className="items-center justify-center text-center">
             {view.answer.albumImageUrl && (
               <img src={view.answer.albumImageUrl} alt="" className="aspect-square w-full max-w-xs rounded-lg object-cover shadow-lg" />
             )}
@@ -245,25 +172,14 @@ export const HostStage = ({ session, publicView, hostView, status, sendAction }:
             <Text as="p" className="text-xs" textColor={SURFACE_TEXT}>
               {view.songNumber < view.songCount ? 'Next song coming up' : 'Final results coming up'}
             </Text>
-          </Panel>
-          <Panel>
+          </StagePanel>
+          <StagePanel>
             <Leaderboard title="Leaderboard" rows={toLeaderboardRows(view.standings, people, 32)} />
-          </Panel>
+          </StagePanel>
         </div>
       )}
 
-      {view.phase === 'final' && (
-        <Panel className="flex-1 items-center">
-          <Text as="h2" className="text-4xl font-black" textColor={SURFACE_TEXT}>
-            Final results
-          </Text>
-          <Podium entries={toLeaderboardRows(view.standings.slice(0, 3), people, 64)} />
-          <Leaderboard rows={toLeaderboardRows(view.standings, people, 32).map((row) => ({ ...row, delta: undefined }))} className="max-w-xl" />
-          <Button variant={{ kind: 'filled', color: 'primary' }} className="text-lg" disabled={!isOpen} onClick={send('back-to-lobby')}>
-            Back to the lobby
-          </Button>
-        </Panel>
-      )}
+      {view.phase === 'final' && <FinalResults standings={view.standings} people={people} isOpen={isOpen} sendAction={sendAction} />}
     </Box>
   );
 };
