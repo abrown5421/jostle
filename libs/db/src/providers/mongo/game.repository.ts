@@ -1,6 +1,6 @@
 import type { Model } from 'mongoose';
 import { CreateGameInput, GameEntity, GameRepository, UpdateGameInput } from '../../contracts/game.contract';
-import type { GameSettingDefinition } from '../../contracts/game.contract';
+import type { GameRequirement, GameSettingDefinition } from '../../contracts/game.contract';
 import { GameDocument } from '../../schemas/game.schema';
 
 // Sub-documents come back as mongoose objects carrying every path in the flat setting schema
@@ -20,6 +20,8 @@ const mapToGameEntity = (doc: GameDocument): GameEntity => ({
   tags: [...doc.tags],
   rules: doc.rules.map(({ title, description }) => ({ title, description })),
   settings: doc.toObject().settings as GameSettingDefinition[],
+  // Records seeded before requirements existed read as having none.
+  requirements: (doc.toObject().requirements ?? []) as GameRequirement[],
   order: doc.order,
   // Records created before seedVersion existed read as version 0, so they upgrade on next boot.
   seedVersion: doc.seedVersion ?? 0,

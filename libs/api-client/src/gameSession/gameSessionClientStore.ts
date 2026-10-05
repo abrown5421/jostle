@@ -19,6 +19,7 @@ const EVENTS = {
   ended: 'session:ended',
   participantRemoved: 'participant:removed',
   gamePrivate: 'game:private',
+  gameHost: 'game:host',
 } as const satisfies typeof SESSION_EVENTS;
 const SOCKET_PATH = '/realtime/session';
 
@@ -40,6 +41,11 @@ export interface GameSessionClientState {
   readonly session: SessionSnapshot | null;
   // The active game's privateView for this device's player (null for the host / no game).
   readonly privateView: unknown;
+  // The active game's hostView, on the host screen (null for players / no game).
+  readonly hostView: unknown;
+  // Server clock minus this device's, from the latest snapshot - game deadlines are server time,
+  // so countdowns add this to Date.now() (see getGameSessionServerNow).
+  readonly serverOffsetMs: number;
   readonly closeReason: GameSessionCloseReason | null;
   readonly closeDetail: SessionEndReason | ParticipantRemovedReason | null;
   readonly lastError: SessionErrorMessage | null;
@@ -53,6 +59,8 @@ const INITIAL_STATE: GameSessionClientState = {
   participantId: null,
   session: null,
   privateView: null,
+  hostView: null,
+  serverOffsetMs: 0,
   closeReason: null,
   closeDetail: null,
   lastError: null,
@@ -112,12 +120,19 @@ const scheduleReconnect = (): void => {
   }, delay);
 };
 
+const offsetFrom = (session: SessionSnapshot): number =>
+  session.serverTime ? Date.parse(session.serverTime) - Date.now() : state.serverOffsetMs;
+
 const handleEvent = (event: string, payload: unknown): void => {
   switch (event) {
     case EVENTS.updated: {
       const session = payload as SessionSnapshot;
       // Drop a stale snapshot that raced a newer one.
-      if (!state.session || session.version >= state.session.version) setState({ session });
+      if (!state.session || session.version >= state.session.version) {
+        // A finished game's views would otherwise linger into the lobby.
+        const clearedViews = session.game ? {} : { privateView: null, hostView: null };
+        setState({ session, serverOffsetMs: offsetFrom(session), ...clearedViews });
+      }
       break;
     }
     case EVENTS.ended:
@@ -128,6 +143,9 @@ const handleEvent = (event: string, payload: unknown): void => {
       break;
     case EVENTS.gamePrivate:
       setState({ privateView: payload });
+      break;
+    case EVENTS.gameHost:
+      setState({ hostView: payload });
       break;
   }
   eventListeners.forEach((listener) => listener(event, payload));
@@ -142,7 +160,14 @@ const handleMessage = (raw: string): void => {
   }
   switch (message.type) {
     case 'welcome':
-      setState({ role: message.role, participantId: message.participantId, session: message.session });
+      setState({
+        role: message.role,
+        participantId: message.participantId,
+        session: message.session,
+        serverOffsetMs: offsetFrom(message.session),
+        privateView: message.role === 'player' ? message.gameView : null,
+        hostView: message.role === 'host' ? message.gameView : null,
+      });
       break;
     case 'event':
       handleEvent(message.event, message.payload);
@@ -250,6 +275,9 @@ export const sendGameSessionMessage = (message: SessionClientMessage): boolean =
 };
 
 export const getGameSessionState = (): GameSessionClientState => state;
+
+// "Now" on the server's clock, in epoch ms - what a countdown to a game deadline should use.
+export const getGameSessionServerNow = (): number => Date.now() + state.serverOffsetMs;
 
 export const subscribeToGameSessionState = (listener: () => void): (() => void) => {
   stateListeners.add(listener);

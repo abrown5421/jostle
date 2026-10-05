@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { Box, Select, SelectItem, Slider, Switch, Text } from '@inithium/ui';
 import type { GameSettingDefinition, GameSettingValue, GameSettingValues } from '@inithium/api-client';
 import { formatSettingValue } from './gameLabels';
+import { IntegrationResourceSetting } from './settingControls/IntegrationResourceSetting';
 import { SURFACE_TEXT } from './surfaceColors';
 
 export interface GameSettingsFormProps {
@@ -80,6 +81,14 @@ export const GameSettingsForm = ({ definitions, values, onChange, disabled }: Ga
               value={Number(valueOf(definition))}
               disabled={disabled}
               onCommit={(value) => change(definition.key, value)}
+            />
+          ) : definition.type === 'integration-resource' ? (
+            <IntegrationResourceSetting
+              definition={definition}
+              value={String(valueOf(definition))}
+              values={values}
+              disabled={disabled}
+              onChange={(value) => change(definition.key, value)}
             />
           ) : definition.type === 'boolean' ? (
             <Switch

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { alert } from '@inithium/ui';
+import { useLocation } from 'react-router-dom';
+import { alert, useNavigateWithTransition } from '@inithium/ui';
 import {
   retainGameSession,
   useGameSession,
@@ -8,6 +9,7 @@ import {
 } from '@inithium/api-client';
 import type { GameSessionClientState, HostedSession, SessionSnapshot } from '@inithium/api-client';
 import { useCurrentUser } from '../../app/useCurrentUser';
+import { resolveRequirementPath } from '../games/requirements';
 
 export interface UseHostSessionOptions {
   // /host creates the session if there isn't one; /games and /settings/:code only ever find an
@@ -34,10 +36,13 @@ export interface UseHostSessionResult {
 // user's hosted session. The socket is *retained*, not connected/disconnected per page, so moving
 // between those pages never drops the host connection (which would start the server's
 // host-absence countdown). Also surfaces server-rejected host messages as alerts, so each page
-// doesn't have to.
+// doesn't have to - except an unmet host requirement (e.g. Spotify disconnected since the game
+// was picked), which sends the host to fix it instead.
 export const useHostSession = ({ create = false }: UseHostSessionOptions = {}): UseHostSessionResult => {
   const { currentUser, isResolving } = useCurrentUser();
   const userId = currentUser?.id;
+  const navigate = useNavigateWithTransition();
+  const location = useLocation();
 
   const existing = useGetMyHostedSessionQuery(undefined, { skip: !userId || create, refetchOnMountOrArgChange: true });
   const [hostGameSession, created] = useHostGameSessionMutation();
@@ -62,8 +67,13 @@ export const useHostSession = ({ create = false }: UseHostSessionOptions = {}): 
   useEffect(() => {
     if (!live.lastError || live.lastError === alertedError.current) return;
     alertedError.current = live.lastError;
+    if (live.lastError.code === 'REQUIREMENTS_NOT_MET' && userId) {
+      alert.info(live.lastError.message, { position: 'bottom-right' });
+      navigate(resolveRequirementPath(userId, `${location.pathname}${location.search}`));
+      return;
+    }
     alert.danger(live.lastError.message, { position: 'bottom-right' });
-  }, [live.lastError]);
+  }, [live.lastError, userId, navigate, location.pathname, location.search]);
 
   return {
     userId,

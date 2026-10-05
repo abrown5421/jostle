@@ -8,6 +8,7 @@ import {
   useStartIntegrationAuthorizationMutation,
 } from '@inithium/api-client';
 import type { IntegrationCallbackResult, IntegrationCatalogEntry } from '@inithium/api-client';
+import { sanitizeReturnTo } from '../../games/requirements';
 
 const ALERT_POSITION = 'bottom-right' as const;
 const FALLBACK_ICON: IconName = 'PlugsConnected';
@@ -151,8 +152,31 @@ const IntegrationCard = ({ integration, busy, onConnect, onDisconnect }: Integra
   );
 };
 
+// Shown when a host was sent here to set something up for a game (see pages/games/requirements.ts):
+// the way back to where they were. 'returnTo' rides along in this page's own query, so it survives
+// the OAuth round-trip (handleConnect keeps the query when it builds its returnTo).
+const ReturnToGameNotice = ({ returnTo }: { returnTo: string }) => {
+  const navigate = useNavigate();
+  return (
+    <Card>
+      <Box flex={{ direction: 'col', gap: 12 }} className="sm:flex-row sm:items-center sm:justify-between">
+        <Box flex={{ direction: 'row', align: 'center', gap: 8 }}>
+          <Icon name="GameController" size={24} />
+          <Text as="p" className="text-sm">
+            Connect what your game needs below, then head back to it.
+          </Text>
+        </Box>
+        <Button variant={{ kind: 'filled', color: 'primary' }} onClick={() => navigate(returnTo)}>
+          Back to the game
+        </Button>
+      </Box>
+    </Card>
+  );
+};
+
 export const IntegrationsPanel = () => {
   const location = useLocation();
+  const returnTo = sanitizeReturnTo(new URLSearchParams(location.search).get('returnTo'));
   const { data: integrations, isLoading, isError, refetch } = useListIntegrationsQuery();
   const [startAuthorization, { isLoading: isStarting }] = useStartIntegrationAuthorizationMutation();
   const [disconnectIntegration, { isLoading: isDisconnecting }] = useDisconnectIntegrationMutation();
@@ -221,6 +245,7 @@ export const IntegrationsPanel = () => {
 
   return (
     <Box flex={{ direction: 'col', gap: 16 }}>
+      {returnTo && <ReturnToGameNotice returnTo={returnTo} />}
       <Text as="p" className="text-sm text-surface-600">
         Link third-party accounts to unlock features like hosting music games with your own playlists. Only you
         can see what&apos;s connected here.

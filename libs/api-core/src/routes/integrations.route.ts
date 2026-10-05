@@ -7,6 +7,7 @@ import {
   completeIntegrationAuthorization,
   disconnectIntegration,
   getIntegrationAccessToken,
+  listIntegrationResources,
   listUserIntegrations,
 } from '@inithium/integrations';
 import { beginIntegrationAuthorizationSchema } from '../schemas/integrations.schema';
@@ -65,6 +66,22 @@ router.get(
     const token = await getIntegrationAccessToken(req.user!.sub, normalizeParam(req.params.provider));
     res.setHeader('Cache-Control', 'no-store');
     res.status(200).json(createSuccessResponse(token));
+  }),
+);
+
+// One of the caller's own resource lists at a provider (their Spotify playlists, ...) - backs
+// integration-resource game settings. Live from the provider on every call, so never cached.
+router.get(
+  '/api/integrations/:provider/resources/:resource',
+  requireAuth,
+  asyncHandler(async (req: Request, res: Response) => {
+    const resources = await listIntegrationResources(
+      req.user!.sub,
+      normalizeParam(req.params.provider),
+      normalizeParam(req.params.resource),
+    );
+    res.setHeader('Cache-Control', 'no-store');
+    res.status(200).json(createSuccessResponse(resources));
   }),
 );
 

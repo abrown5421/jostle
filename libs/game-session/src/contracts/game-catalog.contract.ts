@@ -1,4 +1,4 @@
-import type { GameSettingDefinition } from '@inithium/db';
+import type { GameRequirement, GameSettingDefinition } from '@inithium/db';
 
 // The slice of a catalogue record this lib needs to run the selection/settings/start flow.
 // @inithium/db's GameEntity satisfies it structurally, but nothing here depends on Mongo.
@@ -8,6 +8,8 @@ export interface GameCatalogEntry {
   readonly minPlayers: number;
   readonly maxPlayers: number;
   readonly settings: readonly GameSettingDefinition[];
+  // What the host needs before they can pick or start this game. Omitted -> nothing.
+  readonly requirements?: readonly GameRequirement[];
 }
 
 // Swappable like GameSessionStore: apps/api wires the real (database-backed) catalogue in at boot

@@ -8,7 +8,7 @@ import {
   clearGameSelection,
   dispatchGameAction,
   endSessionAsHost,
-  getSessionSnapshot,
+  getSessionWelcome,
   kickParticipant,
   leaveSession,
   resolveSessionCredential,
@@ -21,6 +21,7 @@ import { GAME_SESSION_CLOSE_CODES, GAME_SESSION_SOCKET_PATH } from './protocol';
 import type { SessionClientMessage, SessionServerMessage } from './protocol';
 
 const HEARTBEAT_INTERVAL_MS = 30000;
+const MAX_MESSAGE_BYTES = 16 * 1024;
 
 type TrackedSocket = WebSocket & { isAlive?: boolean };
 
@@ -68,8 +69,8 @@ const handleClientMessage = async (credential: SessionCredential, message: Sessi
 };
 
 const bindConnection = async (socket: WebSocket, credential: SessionCredential): Promise<void> => {
-  const session = await getSessionSnapshot(credential.code);
-  if (!session) {
+  const welcome = await getSessionWelcome(credential);
+  if (!welcome) {
     socket.close(GAME_SESSION_CLOSE_CODES.sessionEnded, 'Session ended');
     return;
   }
@@ -110,7 +111,7 @@ const bindConnection = async (socket: WebSocket, credential: SessionCredential):
     }
     handleClientMessage(credential, message).catch((error: unknown) => {
       if (isGameSessionError(error)) {
-        send(socket, { type: 'error', code: error.code, message: error.message });
+        send(socket, { type: 'error', code: error.code, message: error.message, details: error.details });
       } else if (error instanceof UnknownMessageError) {
         send(socket, { type: 'error', code: 'UNKNOWN_MESSAGE', message: 'Unknown message type' });
       } else {
@@ -120,7 +121,13 @@ const bindConnection = async (socket: WebSocket, credential: SessionCredential):
     });
   });
 
-  send(socket, { type: 'welcome', role: credential.role, participantId: credential.participantId, session });
+  send(socket, {
+    type: 'welcome',
+    role: credential.role,
+    participantId: credential.participantId,
+    session: welcome.session,
+    gameView: welcome.gameView,
+  });
   if (adjustSocketCount(credential, 1) === 1) await setCredentialConnected(credential, true);
 };
 
@@ -131,7 +138,9 @@ const bindConnection = async (socket: WebSocket, credential: SessionCredential):
 // what lets guests play, and lets one account host on a TV while also playing on their phone.
 // All fan-out still goes through the shared RealtimeProvider, so it scales with it.
 export const attachGameSessionGateway = (server: HttpServer): void => {
-  const wss = new WebSocketServer({ noServer: true });
+  // Every client message is a small JSON command; anything bigger is abuse, and ws closes the
+  // socket (1009) rather than buffering it.
+  const wss = new WebSocketServer({ noServer: true, maxPayload: MAX_MESSAGE_BYTES });
 
   const heartbeat = setInterval(() => {
     wss.clients.forEach((socket) => {

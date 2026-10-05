@@ -24,7 +24,12 @@ fan-out scales with whichever `RealtimeProvider` is active.
    - `{ type: 'host:clear-game' }` - back to no selection.
    - `{ type: 'host:start-game' }` - starts the selected game: checks the catalogue's
      `minPlayers`/`maxPlayers`, that a `GameDefinition` exists (`GAME_NOT_PLAYABLE` otherwise),
-     then the definition's own `validateSettings`.
+     the host's requirements (`REQUIREMENTS_NOT_MET`), required settings (`SETTING_REQUIRED`),
+     then the definition's own `validateSettings` and async `prepare` (see below).
+5. **In game** - everyone sends `{ type: 'game:action', action }`. Every change re-broadcasts the
+   snapshot (with the game's `publicView`), each player's `privateView` (`game:private`) and the
+   host's `hostView` (`game:host`). A reconnecting socket gets its seat's view in its `welcome`
+   (`gameView`). Snapshots carry `serverTime` so clients can count down to server deadlines.
 
 ## Channels (all via the realtime provider)
 
@@ -33,6 +38,10 @@ fan-out scales with whichever `RealtimeProvider` is active.
 | `session:<code>`                       | host + every player    |
 | `session:<code>:host`                  | host screen(s)         |
 | `session:<code>:participant:<id>`      | one player's device(s) |
+
+Game views: `publicView` rides on `session:updated` (everyone), `hostView` on `game:host` (host
+channel), `privateView` on `game:private` (each participant's channel). Anything a player must not
+see yet (the answer, the song to play) belongs in `hostView` or `privateView` only.
 
 The `session:` prefix is blocked on the general `/realtime` gateway (see `apps/api/src/main.ts`).
 
@@ -63,12 +72,35 @@ to the database in `apps/api/src/main.ts`), so it never imports a database drive
 ## Adding a game
 
 1. **Catalogue it** - add `libs/db/src/game-seeds/<slug>.game-seed.ts` and list it in that folder's
-   `registry.ts`. It's seeded on the next API boot (once - later seed edits don't overwrite an
-   existing record). Settings are declared as data (`number` / `boolean` / `select`), and the
+   `registry.ts`. It's seeded on the next API boot; bump its `seedVersion` to push later edits to
+   databases that already have it. Settings are declared as data (`number` / `boolean` / `select` /
+   `integration-resource`), and the
    host's settings screen and the server-side validation both follow from that. At this point the
    game shows on `/games` and can be selected and configured, but not started.
 2. **Make it playable** - implement `GameDefinition` (pure, server-authoritative reducer +
    public/private views) with `id` equal to the slug, and add it to `src/games/registry.ts`.
    `createInitialState` receives the host's validated settings; put cross-setting or
    session-dependent rules (e.g. "at least two players per team") in `validateSettings`. Players
-   send `{ type: 'game:action', action }`. No transport changes needed.
+   send `{ type: 'game:action', action }`. No transport changes needed. Optional extras:
+   - `prepare(context)` - async, network-allowed setup run before `createInitialState` (which
+     receives its result). Runs *outside* the session lock with a timeout
+     (`GAME_PREPARE_TIMEOUT_MS`); the start is re-validated afterwards. Reach external services
+     through a port wired in by `apps/api` (e.g. iPod War's `setIpodWarMusicSource`), never by
+     importing them.
+   - `nextTimeout(state)` - the game's next timed event, derived from state. The service keeps
+     one timer per session armed from it and dispatches its action as `role: 'system'`. Return
+     null while paused. Tag timer actions (e.g. a sequence number) and ignore stale ones.
+   - `hostView(state)` - what only the host screen sees.
+   - React to `SYSTEM_ACTIONS` (`system:participants-changed`, `system:host-connection`). Clients
+     can never send `system:*` actions.
+3. **Host requirements** (optional) - list them on the catalogue record's `requirements` (e.g.
+   `{ kind: 'integration', provider: 'spotify', capabilities: ['playback'] }`). They're
+   evaluated per user by the injected `GameRequirementEvaluator` (`setGameRequirementEvaluator`)
+   on pick and start, and surfaced per user as `hostBlockers` on `GET /api/games`.
+4. **Its screens** - `apps/web/src/games/<slug>/index.ts` default-exporting a `WebGameModule`
+   (`HostStage`, `PlayerController`, optional `useHostSetup`). `/host` and `/play/:code` render
+   it while the game runs.
+
+A setting of type `integration-resource` lets the host pick one of their own things at a
+connected provider (a Spotify playlist), listed by `GET /api/integrations/:provider/resources/:resource`;
+`minItemsFromSetting` ties its minimum size to a number setting.

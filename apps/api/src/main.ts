@@ -11,7 +11,7 @@ import {
   pruneOrphanedPluginPages,
 } from '@inithium/db';
 import { getAuthProvider } from '@inithium/auth';
-import { registerCoreRoutes } from '@inithium/api-core';
+import { configureGameRuntime, registerCoreRoutes } from '@inithium/api-core';
 import { errorHandler } from '@inithium/api-utils';
 import { attachRealtimeGateway, connectRealtime } from '@inithium/realtime';
 import { attachGameSessionGateway, isGameSessionChannel, setGameCatalog } from '@inithium/game-session';
@@ -73,6 +73,8 @@ const startServer = async () => {
         return game?.isPublished ? game : null;
       },
     });
+    // ...and, through ports, who may host which game and where iPod War's music comes from.
+    configureGameRuntime();
     registerCoreRoutes(app);
     app.use(errorHandler);
 

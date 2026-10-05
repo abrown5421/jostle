@@ -2,6 +2,8 @@ import type { GameSessionStore } from './contracts/session-store.contract';
 import { getActiveSessionStore, setActiveSessionStore } from './store/store-registry';
 import type { GameCatalog } from './contracts/game-catalog.contract';
 import { getActiveGameCatalog, setActiveGameCatalog } from './catalog/catalog-registry';
+import type { GameRequirementEvaluator } from './requirements/requirements-registry';
+import { getActiveRequirementEvaluator, setActiveRequirementEvaluator } from './requirements/requirements-registry';
 
 export const setGameSessionStore = (store: GameSessionStore): void => setActiveSessionStore(store);
 export const getGameSessionStore = (): GameSessionStore => getActiveSessionStore();
@@ -9,6 +11,11 @@ export const getGameSessionStore = (): GameSessionStore => getActiveSessionStore
 // apps/api wires the database-backed game catalogue in at boot - see GameCatalog's own comment.
 export const setGameCatalog = (catalog: GameCatalog): void => setActiveGameCatalog(catalog);
 export const getGameCatalog = (): GameCatalog => getActiveGameCatalog();
+
+// apps/api wires in the integration-backed evaluator at boot - see GameRequirementEvaluator.
+export const setGameRequirementEvaluator = (evaluator: GameRequirementEvaluator): void =>
+  setActiveRequirementEvaluator(evaluator);
+export const getGameRequirementEvaluator = (): GameRequirementEvaluator => getActiveRequirementEvaluator();
 
 export { memorySessionStore } from './store/memory.session-store';
 
@@ -18,6 +25,7 @@ export {
   joinSession,
   resolveSessionCredential,
   getSessionSnapshot,
+  getSessionWelcome,
   leaveSession,
   kickParticipant,
   endSession,
@@ -31,11 +39,12 @@ export {
   MAX_PARTICIPANTS,
   MAX_NAME_LENGTH,
   HOST_RECONNECT_GRACE_MS,
+  GAME_PREPARE_TIMEOUT_MS,
 } from './service/session.service';
-export type { HostedSession, JoinSessionInput, JoinedSession } from './service/session.service';
+export type { HostedSession, JoinSessionInput, JoinedSession, SessionWelcome } from './service/session.service';
 
 export { GameSessionError, isGameSessionError, GAME_SESSION_ERROR_CODES } from './service/session.errors';
-export type { GameSessionErrorCode } from './service/session.errors';
+export type { GameSessionErrorCode, GameSessionErrorDetails } from './service/session.errors';
 
 export { normalizeSessionCode, SESSION_CODE_LENGTH } from './service/sessionCode';
 
@@ -55,6 +64,7 @@ export {
   applyGameSettingsPatch,
   resolveGameSettings,
   assertValidGameSettingDefinitions,
+  findMissingRequiredSettings,
 } from './service/gameSettings';
 
 export { attachGameSessionGateway } from './gateway/sessionGateway';
@@ -88,11 +98,20 @@ export type {
 } from './contracts/session.contract';
 export type { GameSessionStore } from './contracts/session-store.contract';
 export type { GameCatalog, GameCatalogEntry } from './contracts/game-catalog.contract';
+export type { GameRequirementEvaluator, GameRequirementBlocker } from './requirements/requirements-registry';
+export { SYSTEM_ACTIONS } from './contracts/game-definition.contract';
 export type {
   GameDefinition,
   GameAction,
   GameActor,
+  GameActorRole,
   GameContext,
   GameSetupContext,
+  GamePrepareContext,
+  GameTimeout,
   GameActionResult,
 } from './contracts/game-definition.contract';
+
+// iPod War - its music-source port (wired in by apps/api) and the view/action types its web UI
+// codes against.
+export * from './games/ipod-war';

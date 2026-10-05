@@ -11,21 +11,31 @@ export const GAME_SESSION_ERROR_CODES = [
   'GAME_IN_PROGRESS',
   'NO_GAME_SELECTED',
   'INVALID_SETTINGS',
+  'SETTING_REQUIRED',
+  'REQUIREMENTS_NOT_MET',
+  'GAME_STARTING',
+  'GAME_SETUP_FAILED',
   'NO_ACTIVE_GAME',
   'INVALID_PLAYER_COUNT',
   'INVALID_ACTION',
 ] as const;
 export type GameSessionErrorCode = (typeof GAME_SESSION_ERROR_CODES)[number];
 
+// Structured extras a client can act on, beyond the human-readable message - e.g. which requirement
+// a REQUIREMENTS_NOT_MET was about, so the web app can send the host to the right place to fix it.
+export type GameSessionErrorDetails = Readonly<Record<string, unknown>>;
+
 // Transport-agnostic on purpose: the REST route maps these onto @inithium/api-utils' AppError
 // HTTP statuses, the WS gateway relays them as {type:'error'} frames - this lib knows neither.
 export class GameSessionError extends Error {
   readonly code: GameSessionErrorCode;
+  readonly details?: GameSessionErrorDetails;
 
-  constructor(code: GameSessionErrorCode, message: string) {
+  constructor(code: GameSessionErrorCode, message: string, details?: GameSessionErrorDetails) {
     super(message);
     this.name = 'GameSessionError';
     this.code = code;
+    this.details = details;
   }
 }
 

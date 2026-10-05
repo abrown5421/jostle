@@ -41,6 +41,7 @@ const wordleWithFriendsGameSeed: CreateGameInput = {
       step: 1,
     },
   ],
+  requirements: [],
   order: 40,
   seedVersion: 2,
   isPublished: true,

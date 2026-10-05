@@ -160,13 +160,16 @@ export type {
 export type { NotificationEntity, CreateNotificationInput, NotificationRepository } from './contracts/notification.contract';
 export { SETTING_TYPES } from './contracts/settings.contract';
 export type { SettingType, SettingEntity, UpsertSettingInput, SettingsRepository } from './contracts/settings.contract';
-export { GAME_SETTING_TYPES } from './contracts/game.contract';
+export { GAME_SETTING_TYPES, GAME_REQUIREMENT_KINDS } from './contracts/game.contract';
 export type {
   GameSettingType,
   GameSettingDefinition,
   GameSettingSelectOption,
   GameSettingValue,
   GameSettingValues,
+  GameRequirement,
+  GameRequirementKind,
+  IntegrationGameRequirement,
   GameRule,
   GameEntity,
   CreateGameInput,

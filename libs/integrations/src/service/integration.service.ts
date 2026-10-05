@@ -10,7 +10,9 @@ import {
 import type { IntegrationEntity, IntegrationStatus } from '@inithium/db';
 import {
   IntegrationAuthRevokedError,
+  IntegrationRequestError,
   type IntegrationProvider,
+  type IntegrationResource,
   type OAuthTokenSet,
 } from '../contracts/integration-provider.contract';
 import {
@@ -210,10 +212,14 @@ const refreshAndPersist = async (provider: IntegrationProvider, entity: Integrat
     const current = decryptCredentials<OAuthTokenSet>(entity.encryptedCredentials);
     try {
       const next = await provider.refreshTokens(current);
+      // Best effort: re-read the account's facts while we hold a fresh token, so a change on the
+      // provider's side (Spotify Free -> Premium) reaches stored metadata without a reconnect.
+      const profile = await provider.fetchProfile(next.accessToken).catch(() => null);
       await updateIntegrationCredentials(entity.userId, provider.id, {
         encryptedCredentials: encryptCredentials(next),
         credentialsExpireAt: next.expiresAt ? new Date(next.expiresAt) : undefined,
         scopes: next.scopes,
+        metadata: profile?.metadata,
       });
       return next;
     } catch (error) {
@@ -240,7 +246,13 @@ const refreshAndPersist = async (provider: IntegrationProvider, entity: Integrat
 // The one way any server code (an iPod War playlist fetch, ...) or the host's browser (via
 // GET /api/integrations/:provider/token, for the Web Playback SDK) obtains a usable access token
 // on a user's behalf - transparently refreshed when it's expired or about to be.
-export const getIntegrationAccessToken = async (userId: string, providerId: string): Promise<IntegrationAccessToken> => {
+export const getIntegrationAccessToken = async (
+  userId: string,
+  providerId: string,
+  // Refresh even if the stored token looks fresh - for a caller whose request was just refused
+  // with it (revoked early, clock skew).
+  { forceRefresh = false }: { forceRefresh?: boolean } = {},
+): Promise<IntegrationAccessToken> => {
   const provider = requireAvailableProvider(providerId);
   const entity = await findIntegrationForUser(userId, provider.id);
   if (!entity) throw NotFoundError(`${provider.presentation.displayName} isn't connected`);
@@ -253,11 +265,78 @@ export const getIntegrationAccessToken = async (userId: string, providerId: stri
   }
 
   let tokens = decryptCredentials<OAuthTokenSet>(entity.encryptedCredentials);
-  if (tokens.expiresAt !== undefined && tokens.expiresAt - REFRESH_SKEW_MS <= Date.now()) {
+  if (forceRefresh || (tokens.expiresAt !== undefined && tokens.expiresAt - REFRESH_SKEW_MS <= Date.now())) {
     tokens = await refreshAndPersist(provider, entity);
   }
 
   return { accessToken: tokens.accessToken, tokenType: tokens.tokenType, expiresAt: tokens.expiresAt, scopes: tokens.scopes };
+};
+
+// Runs `request` with a user's access token, refreshing and retrying once if the provider says the
+// token is no good (401) - so server-side callers never have to think about token lifetimes.
+export const withIntegrationAccessToken = async <T>(
+  userId: string,
+  providerId: string,
+  request: (accessToken: string) => Promise<T>,
+): Promise<T> => {
+  const { accessToken } = await getIntegrationAccessToken(userId, providerId);
+  try {
+    return await request(accessToken);
+  } catch (error) {
+    if (!(error instanceof IntegrationRequestError) || error.status !== 401) throw error;
+    const refreshed = await getIntegrationAccessToken(userId, providerId, { forceRefresh: true });
+    return request(refreshed.accessToken);
+  }
+};
+
+// One thing a feature needs from a user's integrations (e.g. a game's host requirement).
+export interface IntegrationRequirement {
+  readonly provider: string;
+  readonly capabilities?: readonly string[];
+}
+
+const describeUnmetRequirement = (requirement: IntegrationRequirement, entity: IntegrationEntity | undefined): string | null => {
+  const provider = getIntegrationProvider(requirement.provider);
+  if (!provider) return `"${requirement.provider}" isn't a supported integration.`;
+  const name = provider.presentation.displayName;
+  if (!isProviderAvailable(provider)) return `${name} isn't set up on this server yet.`;
+  if (!entity) return `Connect your ${name} account to host this game.`;
+  if (entity.status === 'needs-reauth') return `Your ${name} connection has expired - reconnect it to host this game.`;
+  for (const capability of requirement.capabilities ?? []) {
+    const reason = provider.evaluateCapability
+      ? provider.evaluateCapability(capability, entity.metadata)
+      : `${name} can't provide "${capability}".`;
+    if (reason) return reason;
+  }
+  return null;
+};
+
+// For each requirement, null if the user meets it, otherwise a user-facing reason they don't.
+// Reads the user's integrations once, however many requirements there are.
+export const evaluateIntegrationRequirements = async (
+  userId: string,
+  requirements: readonly IntegrationRequirement[],
+): Promise<(string | null)[]> => {
+  if (requirements.length === 0) return [];
+  const rows = await listIntegrationsForUser(userId);
+  const byProvider = new Map(rows.map((row) => [row.provider, row]));
+  return requirements.map((requirement) => describeUnmetRequirement(requirement, byProvider.get(requirement.provider)));
+};
+
+// One of a user's resource lists at a provider (their Spotify playlists, ...) for a picker.
+export const listIntegrationResources = async (
+  userId: string,
+  providerId: string,
+  resource: string,
+): Promise<IntegrationResource[]> => {
+  const provider = requireAvailableProvider(providerId);
+  const source = provider.resources?.[resource];
+  if (!source) throw NotFoundError(`${provider.presentation.displayName} has no "${resource}" list`);
+  const entity = await findIntegrationForUser(userId, provider.id);
+  if (!entity) throw NotFoundError(`${provider.presentation.displayName} isn't connected`);
+  return withIntegrationAccessToken(userId, provider.id, (accessToken) =>
+    source.list(accessToken, { externalAccountId: entity.externalAccountId }),
+  );
 };
 
 export const disconnectIntegration = async (userId: string, providerId: string): Promise<boolean> => {

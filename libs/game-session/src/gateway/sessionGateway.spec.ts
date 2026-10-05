@@ -1,6 +1,8 @@
 import { createServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import type { GameDefinition } from '../contracts/game-definition.contract';
+import { resetGameDefinitions, setGameDefinitionsForTesting } from '../games/registry';
 import { WebSocket } from 'ws';
 import { attachGameSessionGateway } from './sessionGateway';
 import { GAME_SESSION_CLOSE_CODES, GAME_SESSION_SOCKET_PATH } from './protocol';
@@ -33,13 +35,26 @@ const TEST_GAME: GameCatalogEntry = {
   ],
 };
 
+// Playable, with a secret only the host screen may ever see.
+const VIEW_GAME: GameCatalogEntry = { slug: 'view-game', title: 'View Game', minPlayers: 1, maxPlayers: 4, settings: [] };
+const VIEW_GAME_DEFINITION: GameDefinition<{ presses: number }> = {
+  id: VIEW_GAME.slug,
+  createInitialState: () => ({ presses: 0 }),
+  handleAction: (state, action) => ({ state: action.type === 'press' ? { presses: state.presses + 1 } : state }),
+  publicView: (state) => ({ presses: state.presses }),
+  hostView: (state) => ({ answer: 'host-secret', presses: state.presses }),
+  privateView: (state, participantId) => ({ mine: participantId, presses: state.presses }),
+};
+const CATALOG: Record<string, GameCatalogEntry> = { [TEST_GAME.slug]: TEST_GAME, [VIEW_GAME.slug]: VIEW_GAME };
+
 // End-to-end over real sockets and the real (in-memory) RealtimeProvider - the same path the
 // browser takes, minus REST (the routes are thin wrappers over hostSession/joinSession).
 let server: Server;
 let baseUrl: string;
 
 beforeAll(async () => {
-  setActiveGameCatalog({ name: 'test', findGame: async (gameId) => (gameId === TEST_GAME.slug ? TEST_GAME : null) });
+  setActiveGameCatalog({ name: 'test', findGame: async (gameId) => CATALOG[gameId] ?? null });
+  setGameDefinitionsForTesting([VIEW_GAME_DEFINITION]);
   server = createServer();
   attachGameSessionGateway(server);
   await new Promise<void>((resolve) => server.listen(0, resolve));
@@ -47,6 +62,7 @@ beforeAll(async () => {
 });
 
 afterAll(() => {
+  resetGameDefinitions();
   server.closeAllConnections();
   server.close();
 });
@@ -259,6 +275,37 @@ describe('game session gateway', () => {
 
     host.close();
     player.close();
+  });
+
+  it("sends the host view to the host screen only, and replays each seat's game view in its welcome", async () => {
+    const { hostToken, session } = await hostSession('host-user-8');
+    const seat = await joinSession(session.code, { name: 'Viewer', userId: null, avatar: null });
+    const host = await connect(hostToken);
+    const player = await connect(seat.playerToken);
+    expect(await player.next(isWelcome)).toMatchObject({ gameView: null });
+    await host.next(isWelcome);
+
+    host.send({ type: 'host:select-game', gameId: VIEW_GAME.slug });
+    host.send({ type: 'host:start-game' });
+    expect(await host.next((m) => m.type === 'event' && m.event === 'game:host')).toMatchObject({
+      payload: { answer: 'host-secret', presses: 0 },
+    });
+    expect(await player.next((m) => m.type === 'event' && m.event === 'game:private')).toMatchObject({
+      payload: { mine: seat.participantId, presses: 0 },
+    });
+
+    player.send({ type: 'game:action', action: { type: 'press' } });
+    await player.next(snapshotWhere((s) => (s.game?.view as { presses: number } | null)?.presses === 1));
+    // Nothing the player's socket received (snapshots included) carries the host's secret.
+    expect(JSON.stringify(player.messages)).not.toContain('host-secret');
+
+    // A reconnecting device is caught up by its welcome alone.
+    const hostAgain = await connect(hostToken);
+    expect(await hostAgain.next(isWelcome)).toMatchObject({ gameView: { answer: 'host-secret', presses: 1 } });
+    const playerAgain = await connect(seat.playerToken);
+    expect(await playerAgain.next(isWelcome)).toMatchObject({ gameView: { mine: seat.participantId, presses: 1 } });
+
+    [host, player, hostAgain, playerAgain].forEach((client) => client.close());
   });
 
   it('closes an unknown token with the invalid-token code instead of failing the upgrade', async () => {

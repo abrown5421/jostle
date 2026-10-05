@@ -1,5 +1,6 @@
-import { Avatar, Box, Button, Text, resolveAvatarConfigProps } from '@inithium/ui';
+import { Avatar, Box, Button, Text } from '@inithium/ui';
 import type { SessionParticipant } from '@inithium/api-client';
+import { resolveParticipantAvatarProps } from '../../games/shared/participants';
 import { SURFACE_BG, SURFACE_BORDER, SURFACE_TEXT } from '../games/surfaceColors';
 
 const AVATAR_SIZE = 40;
@@ -8,15 +9,6 @@ export interface ParticipantListProps {
   readonly participants: readonly SessionParticipant[];
   readonly onRemove?: (participantId: string) => void;
 }
-
-// The seat's avatar when it has one - a signed-in player's saved avatar or a guest's randomized
-// pick (an uploaded image or dicebear wins outright; an initials avatar keeps its colors/shape
-// but spells the *screen name*).
-// Seats with no avatar get plain initials of their screen name.
-const resolveParticipantAvatarProps = (participant: SessionParticipant) =>
-  participant.avatar
-    ? resolveAvatarConfigProps(participant.avatar, participant.name)
-    : { source: { variant: 'initials' as const, name: participant.name } };
 
 export const ParticipantList = ({ participants, onRemove }: ParticipantListProps) => (
   <Box flex={{ direction: 'col', gap: 16 }} className="w-full">
