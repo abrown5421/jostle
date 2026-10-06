@@ -122,5 +122,9 @@ export * from './games/point-of-hue';
 // Fishbowl - the view/action types its web UI codes against.
 export * from './games/fishbowl';
 
+// Wordle War - its dictionary port (wired in by apps/api) and the view/action types its web UI
+// codes against.
+export * from './games/wordle-war';
+
 // Shared building blocks for timed, round-based games.
 export type { TimedPhaseState, PlayerStanding } from './games/shared';

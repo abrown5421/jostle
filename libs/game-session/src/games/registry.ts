@@ -2,6 +2,7 @@ import type { GameDefinition } from '../contracts/game-definition.contract';
 import { fishbowlGame } from './fishbowl/fishbowl.game';
 import { ipodWarGame } from './ipod-war/ipodWar.game';
 import { pointOfHueGame } from './point-of-hue/pointOfHue.game';
+import { wordleWarGame } from './wordle-war/wordleWar.game';
 
 // Every playable game, keyed by id (= its game catalogue slug). A game can sit in the catalogue,
 // be selected and configured, before it has an entry here; it just can't be started. A new game
@@ -15,6 +16,7 @@ const gameDefinitions: readonly AnyGameDefinition[] = [
   ipodWarGame,
   pointOfHueGame,
   fishbowlGame,
+  wordleWarGame,
   // inithium:anchor:games
 ];
 

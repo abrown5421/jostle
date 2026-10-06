@@ -249,6 +249,8 @@ describe('Point of Hue views', () => {
   });
 
   it('reveals the target, everyone\'s guesses and standings, and each player their own result', () => {
+    // A fixed, light target, so p2's black guess below is guaranteed to score nothing.
+    setPointOfHueRandomForTesting(() => 0.5);
     let state = toGuessing(create(), 20_000);
     const hex = target(state);
     state = player(state, 'p1', { type: 'submit', payload: { hex } }, 20_000).state;

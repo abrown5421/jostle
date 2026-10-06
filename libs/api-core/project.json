@@ -14,6 +14,13 @@
         "assets": ["libs/api-core/*.md"]
       }
     },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run",
+        "cwd": "libs/api-core"
+      }
+    },
     "type-check": {
       "executor": "nx:run-commands",
       "options": {
