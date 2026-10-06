@@ -9,11 +9,12 @@ import { SURFACE_TEXT } from '../games/surfaceColors';
 export interface HostGameScreenProps {
   readonly session: SessionSnapshot;
   readonly live: GameSessionClientState;
+  readonly onEnd: () => void;
 }
 
 // The shared screen while a game runs: hands the session and the game's views to that game's own
 // HostStage (apps/web/src/games/<id>). Knows no game by name.
-export const HostGameScreen = ({ session, live }: HostGameScreenProps) => {
+export const HostGameScreen = ({ session, live, onEnd }: HostGameScreenProps) => {
   const sendAction = useCallback((action: WebGameAction) => sendGameSessionMessage({ type: 'game:action', action }), []);
   const game = session.game;
   const module = game ? getWebGameModule(game.gameId) : undefined;
@@ -24,7 +25,7 @@ export const HostGameScreen = ({ session, live }: HostGameScreenProps) => {
         <Text as="p" textColor={SURFACE_TEXT}>
           This screen can’t show the game in progress - try refreshing.
         </Text>
-        <Button variant={{ kind: 'filled', color: 'red', intensity: 500 }} onClick={() => sendGameSessionMessage({ type: 'host:end' })}>
+        <Button variant={{ kind: 'filled', color: 'red', intensity: 500 }} onClick={onEnd}>
           End session
         </Button>
       </Box>

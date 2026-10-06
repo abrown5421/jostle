@@ -448,6 +448,14 @@ export const endSessionAsHost = async (credential: SessionCredential): Promise<v
   await endSession(credential.code, 'host-ended');
 };
 
+// The REST counterpart of host:end, keyed by the signed-in account rather than the host socket -
+// so the host can always end their session, even while that socket is down or reconnecting.
+// A no-op when they aren't hosting (already ended, or a double click).
+export const endHostedSession = async (hostUserId: string): Promise<void> => {
+  const existing = await store().findByHostUserId(hostUserId);
+  if (existing) await endSession(existing.code, 'host-ended');
+};
+
 // Game selection and settings. The host picks a game from the catalogue (select), configures it
 // (update-settings) while players are still free to join, then starts it. Every step commits a
 // new snapshot, so every screen - host and players - follows along over the same pub/sub

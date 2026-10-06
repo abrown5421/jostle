@@ -55,6 +55,16 @@ export const PlayPage = () => {
     if (closeReason && code) clearPlayerCredential(code);
   }, [closeReason, code]);
 
+  // The whole session is gone (not just this seat) - straight back to /join, ready for the next
+  // code. Being kicked or leaving still gets the screen below, so it doesn't feel like a glitch.
+  useEffect(() => {
+    if (closeReason !== 'session-ended' && closeReason !== 'invalid-token') return;
+    alert.info(resolveClosedMessage(sessionState), { position: 'bottom-right' });
+    navigate('/join');
+    // Fires once per close - sessionState changes identity on every update.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [closeReason, navigate]);
+
   useEffect(() => {
     if (lastError) alert.danger(lastError.message, { position: 'bottom-right' });
   }, [lastError]);

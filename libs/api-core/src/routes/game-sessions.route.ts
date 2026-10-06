@@ -11,7 +11,7 @@ import {
 } from '@inithium/api-utils';
 import { optionalAuth, requireAuth } from '@inithium/auth';
 import { getUserRepository } from '@inithium/db';
-import { findHostedSession, hostSession, isGameSessionError, joinSession } from '@inithium/game-session';
+import { endHostedSession, findHostedSession, hostSession, isGameSessionError, joinSession } from '@inithium/game-session';
 import type { GameSessionError } from '@inithium/game-session';
 import { joinGameSessionSchema } from '../schemas/game-sessions.schema';
 
@@ -62,6 +62,17 @@ router.get(
   requireAuth,
   asyncHandler(async (req: Request, res: Response) => {
     res.status(200).json(createSuccessResponse(await findHostedSession(req.user!.sub)));
+  }),
+);
+
+// Ends the caller's hosted session, if any - every seat's socket closes with "session ended" and
+// every token stops resolving. Idempotent, so a session that already ended is still a 200.
+router.delete(
+  '/api/game-sessions/mine',
+  requireAuth,
+  asyncHandler(async (req: Request, res: Response) => {
+    await endHostedSession(req.user!.sub);
+    res.status(200).json(createSuccessResponse(null));
   }),
 );
 

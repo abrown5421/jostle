@@ -1,8 +1,10 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { alert, useNavigateWithTransition } from '@inithium/ui';
 import {
+  getGameSessionError,
   retainGameSession,
+  useEndMyHostedSessionMutation,
   useGameSession,
   useGetMyHostedSessionQuery,
   useHostGameSessionMutation,
@@ -30,6 +32,10 @@ export interface UseHostSessionResult {
   readonly isReady: boolean;
   readonly createError: unknown;
   readonly retryCreate: () => void;
+  // Ends the session for everyone (players are sent back to /join), then takes the host home.
+  readonly endSession: () => void;
+  // From the click until the redirect home - screens show a spinner rather than "Session ended".
+  readonly isEnding: boolean;
 }
 
 // The one way every host-flow page (/host, /games, /settings/:code) attaches to the signed-in
@@ -60,6 +66,16 @@ export const useHostSession = ({ create = false }: UseHostSessionOptions = {}): 
   useEffect(() => (hostToken ? retainGameSession(hostToken) : undefined), [hostToken]);
 
   const live = useGameSession();
+
+  // Over REST rather than the host socket's host:end, so it can't silently no-op while that
+  // socket is reconnecting.
+  const [endMyHostedSession, ending] = useEndMyHostedSessionMutation();
+  const endSession = useCallback(() => {
+    endMyHostedSession()
+      .unwrap()
+      .then(() => navigate('/'))
+      .catch((error: unknown) => alert.danger(getGameSessionError(error).message, { position: 'bottom-right' }));
+  }, [endMyHostedSession, navigate]);
   const isLive = live.role === 'host' && live.session?.code === hosted?.session.code;
 
   // Only errors that arrive while this page is mounted - not one left over from the last page.
@@ -86,5 +102,7 @@ export const useHostSession = ({ create = false }: UseHostSessionOptions = {}): 
     isReady: isLive && live.status === 'open',
     createError: created.error,
     retryCreate: () => void hostGameSession(),
+    endSession,
+    isEnding: ending.isLoading || ending.isSuccess,
   };
 };

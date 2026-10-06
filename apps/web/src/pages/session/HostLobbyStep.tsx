@@ -76,6 +76,7 @@ const NextGamePanel = ({ gameId, onChooseGame, onConfigure }: NextGamePanelProps
 export interface HostLobbyStepProps {
   readonly session: SessionSnapshot;
   readonly status: GameSessionConnectionStatus;
+  readonly isEnding: boolean;
   readonly onChooseGame: () => void;
   readonly onConfigure: () => void;
   readonly onKick: (participantId: string) => void;
@@ -83,7 +84,7 @@ export interface HostLobbyStepProps {
 }
 
 // Waiting for players: join code + QR on one side, who's joined on the other, and what's up next.
-export const HostLobbyStep = ({ session, status, onChooseGame, onConfigure, onKick, onEnd }: HostLobbyStepProps) => (
+export const HostLobbyStep = ({ session, status, isEnding, onChooseGame, onConfigure, onKick, onEnd }: HostLobbyStepProps) => (
   // Two equal full-width columns (stacked on narrow screens), stretched to the page's height.
   <div className="grid w-full flex-1 grid-cols-1 lg:grid-cols-2">
     <Box flex={{ direction: 'col', align: 'center', justify: 'center', gap: 16 }} padding={{ base: 32 }}>
@@ -106,7 +107,8 @@ export const HostLobbyStep = ({ session, status, onChooseGame, onConfigure, onKi
         </Text>
       )}
       <NextGamePanel gameId={session.selection?.gameId ?? null} onChooseGame={onChooseGame} onConfigure={onConfigure} />
-      <Button variant={{ kind: 'filled', color: 'red', intensity: 500 }} onClick={onEnd} disabled={status !== 'open'}>
+      {/* Not gated on the socket being open - ending goes over REST, so it works mid-reconnect. */}
+      <Button variant={{ kind: 'filled', color: 'red', intensity: 500 }} onClick={onEnd} disabled={isEnding}>
         End session
       </Button>
     </Box>

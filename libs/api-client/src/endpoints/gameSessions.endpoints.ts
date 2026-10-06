@@ -29,6 +29,13 @@ export const gameSessionsApi = baseApi.injectEndpoints({
       transformResponse: (response: ApiResponse<HostedSession | null>) => response.data,
       providesTags: ['HostedSession'],
     }),
+    // Ends the signed-in user's hosted session (a no-op if there isn't one). Over REST rather than
+    // the host socket's host:end, so it works even while that socket is down or reconnecting.
+    endMyHostedSession: builder.mutation<null, void>({
+      query: () => ({ url: '/api/game-sessions/mine', method: 'DELETE' }),
+      transformResponse: (response: ApiResponse<null>) => response.data,
+      invalidatesTags: ['HostedSession'],
+    }),
     joinGameSession: builder.mutation<JoinedSession, JoinGameSessionInput>({
       query: ({ code, ...body }) => ({ url: `/api/game-sessions/${encodeURIComponent(code)}/join`, method: 'POST', body }),
       transformResponse: (response: ApiResponse<JoinedSession>) => response.data,
@@ -36,7 +43,12 @@ export const gameSessionsApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { useHostGameSessionMutation, useJoinGameSessionMutation, useGetMyHostedSessionQuery } = gameSessionsApi;
+export const {
+  useHostGameSessionMutation,
+  useJoinGameSessionMutation,
+  useGetMyHostedSessionQuery,
+  useEndMyHostedSessionMutation,
+} = gameSessionsApi;
 
 // Pulls the GameSessionErrorCode the API puts in `error.details.code` out of an RTK Query error,
 // so a form can pin the message to the right field.

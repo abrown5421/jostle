@@ -32,6 +32,7 @@ export {
   useHostGameSessionMutation,
   useJoinGameSessionMutation,
   useGetMyHostedSessionQuery,
+  useEndMyHostedSessionMutation,
   getGameSessionError,
 } from './endpoints/gameSessions.endpoints';
 export type { JoinGameSessionInput } from './endpoints/gameSessions.endpoints';
