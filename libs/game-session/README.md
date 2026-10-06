@@ -85,8 +85,9 @@ to the database in `apps/api/src/main.ts`), so it never imports a database drive
    - `prepare(context)` - async, network-allowed setup run before `createInitialState` (which
      receives its result). Runs *outside* the session lock with a timeout
      (`GAME_PREPARE_TIMEOUT_MS`); the start is re-validated afterwards. Reach external services
-     through a port wired in by `apps/api` (e.g. iPod War's `setIpodWarMusicSource`), never by
-     importing them.
+     through a port wired in by `apps/api` (`libs/api-core/src/games/configureGameRuntime.ts`:
+     iPod War's `setIpodWarMusicSource`, Wordle War's Datamuse-backed
+     `setWordleWarDictionarySource`), never by importing them.
    - `nextTimeout(state)` - the game's next timed event, derived from state. The service keeps
      one timer per session armed from it and dispatches its action as `role: 'system'`. Return
      null while paused. Tag timer actions (e.g. a sequence number) and ignore stale ones.
