@@ -4,6 +4,7 @@ import { getGameSessionServerNow } from '@inithium/api-client';
 import type { IpodWarHostView, IpodWarPublicView } from '@inithium/game-session';
 import type { HostStageProps } from '../registry';
 import { participantsById } from '../shared/participants';
+import { useSoundOnIncrease } from '../shared/useSoundOnIncrease';
 import { AUTO_PAUSED_NOTICE, deadlineOf, FinalResults, LockInGrid, StageHeader, StagePanel, toLeaderboardRows } from '../shared/stage';
 import { SECONDARY_BUTTON_PROPS, SURFACE_TEXT } from '../../pages/games/surfaceColors';
 import { activateSpotifyPlayer } from './spotifyPlayer';
@@ -40,6 +41,7 @@ export const HostStage = ({ session, publicView, hostView, status, sendAction }:
   const host = (hostView as IpodWarHostView | null) ?? null;
   const people = participantsById(session.participants);
   const audio = useIpodWarAudio(host, sendAction);
+  useSoundOnIncrease(view.lockedIn.length, `song-${view.songNumber}`);
   const isOpen = status === 'open';
 
   const isLoading = view.phase === 'loading';

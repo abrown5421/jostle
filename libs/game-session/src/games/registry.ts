@@ -1,4 +1,5 @@
 import type { GameDefinition } from '../contracts/game-definition.contract';
+import { fishbowlGame } from './fishbowl/fishbowl.game';
 import { ipodWarGame } from './ipod-war/ipodWar.game';
 import { pointOfHueGame } from './point-of-hue/pointOfHue.game';
 
@@ -13,6 +14,7 @@ type AnyGameDefinition = GameDefinition<any, any, any>;
 const gameDefinitions: readonly AnyGameDefinition[] = [
   ipodWarGame,
   pointOfHueGame,
+  fishbowlGame,
   // inithium:anchor:games
 ];
 

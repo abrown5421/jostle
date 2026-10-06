@@ -104,10 +104,29 @@ export interface StageHeaderProps {
   readonly onResume?: () => void;
   // What "End game" warns about.
   readonly endDescription: string;
+  // For phases where nothing is timed (Resume still shows whenever the game is paused).
+  readonly showPause?: boolean;
+  readonly showSkip?: boolean;
+  // What the game's 'skip' does right now ("End turn", "Skip presenter", ...).
+  readonly skipLabel?: string;
 }
 
 // The title row plus the host's Pause/Resume, Skip and End game controls.
-export const StageHeader = ({ media, title, subtitle, extra, isFinal, paused, isOpen, sendAction, onResume, endDescription }: StageHeaderProps) => {
+export const StageHeader = ({
+  media,
+  title,
+  subtitle,
+  extra,
+  isFinal,
+  paused,
+  isOpen,
+  sendAction,
+  onResume,
+  endDescription,
+  showPause = true,
+  showSkip = true,
+  skipLabel = 'Skip',
+}: StageHeaderProps) => {
   const send = (type: string) => () => sendAction({ type });
   const endGame = async () => {
     const confirmed = await dialog.confirm({
@@ -147,13 +166,17 @@ export const StageHeader = ({ media, title, subtitle, extra, isFinal, paused, is
                 Resume
               </Button>
             ) : (
-              <Button {...SECONDARY_BUTTON_PROPS} disabled={!isOpen} onClick={send('pause')} entryAdornment={<Icon as="span" name="Pause" size={16} weight="fill" />}>
-                Pause
+              showPause && (
+                <Button {...SECONDARY_BUTTON_PROPS} disabled={!isOpen} onClick={send('pause')} entryAdornment={<Icon as="span" name="Pause" size={16} weight="fill" />}>
+                  Pause
+                </Button>
+              )
+            )}
+            {showSkip && (
+              <Button {...SECONDARY_BUTTON_PROPS} disabled={!isOpen} onClick={send('skip')} entryAdornment={<Icon as="span" name="SkipForward" size={16} weight="fill" />}>
+                {skipLabel}
               </Button>
             )}
-            <Button {...SECONDARY_BUTTON_PROPS} disabled={!isOpen} onClick={send('skip')} entryAdornment={<Icon as="span" name="SkipForward" size={16} weight="fill" />}>
-              Skip
-            </Button>
             <Button {...GHOST_BUTTON_PROPS} disabled={!isOpen} onClick={() => void endGame()}>
               End game
             </Button>

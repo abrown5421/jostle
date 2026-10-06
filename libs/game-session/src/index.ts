@@ -119,5 +119,8 @@ export * from './games/ipod-war';
 // Point of Hue - the view/action types its web UI codes against.
 export * from './games/point-of-hue';
 
+// Fishbowl - the view/action types its web UI codes against.
+export * from './games/fishbowl';
+
 // Shared building blocks for timed, round-based games.
 export type { TimedPhaseState, PlayerStanding } from './games/shared';

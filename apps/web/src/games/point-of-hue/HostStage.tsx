@@ -3,6 +3,7 @@ import { getGameSessionServerNow } from '@inithium/api-client';
 import type { PointOfHueHostView, PointOfHuePublicView } from '@inithium/game-session';
 import type { HostStageProps } from '../registry';
 import { participantsById } from '../shared/participants';
+import { useSoundOnIncrease } from '../shared/useSoundOnIncrease';
 import { AUTO_PAUSED_NOTICE, deadlineOf, FinalResults, LockInGrid, StageHeader, StagePanel, toLeaderboardRows } from '../shared/stage';
 import { SURFACE_TEXT } from '../../pages/games/surfaceColors';
 import { ColorSwatch } from './ColorSwatch';
@@ -20,6 +21,7 @@ export const HostStage = ({ session, publicView, hostView, status, sendAction }:
   const host = (hostView as PointOfHueHostView | null) ?? null;
   const people = participantsById(session.participants);
   const isOpen = status === 'open';
+  useSoundOnIncrease(view.lockedIn.length, `round-${view.roundNumber}`);
   const timer = (totalMs: number, className: string) => (
     <CountdownBar endsAt={deadlineOf(view)} pausedRemainingMs={view.pausedRemainingMs} totalMs={totalMs} now={getGameSessionServerNow} className={className} />
   );
