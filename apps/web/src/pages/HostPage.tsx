@@ -22,7 +22,8 @@ export const HostPage = () => {
   const navigate = useNavigateWithTransition();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { userId, isResolvingUser, session, live, isReady, createError, retryCreate } = useHostSession({ create: true });
+  const { userId, isResolvingUser, session, live, isReady, createError, retryCreate, endSession, isEnding } =
+    useHostSession({ create: true });
   const { status, closeReason, closeDetail } = live;
   const requestedGameId = searchParams.get('game');
 
@@ -69,6 +70,16 @@ export const HostPage = () => {
     );
   }
 
+  // The socket's "session ended" usually lands before the DELETE's response - hold a spinner until
+  // the redirect home instead of flashing the screen below.
+  if (isEnding) {
+    return (
+      <Box flex={{ justify: 'center', align: 'center' }} className="flex-1">
+        <Loader variant="spinner" color={{ color: 'primary', intensity: 500 }} label="Ending session…" />
+      </Box>
+    );
+  }
+
   if (closeReason) {
     return (
       <Box flex={{ direction: 'col', align: 'center', justify: 'center', gap: 16 }} padding={{ base: 32 }} className="flex-1">
@@ -102,16 +113,17 @@ export const HostPage = () => {
     );
   }
 
-  if (session.status === 'in-game' && session.game) return <HostGameScreen session={session} live={live} />;
+  if (session.status === 'in-game' && session.game) return <HostGameScreen session={session} live={live} onEnd={endSession} />;
 
   return (
     <HostLobbyStep
       session={session}
       status={status}
+      isEnding={isEnding}
       onChooseGame={() => navigate('/games')}
       onConfigure={() => navigate(`/settings/${session.code}`)}
       onKick={(participantId) => sendGameSessionMessage({ type: 'host:kick', participantId })}
-      onEnd={() => sendGameSessionMessage({ type: 'host:end' })}
+      onEnd={endSession}
     />
   );
 };
