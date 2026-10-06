@@ -91,6 +91,9 @@ to the database in `apps/api/src/main.ts`), so it never imports a database drive
      one timer per session armed from it and dispatches its action as `role: 'system'`. Return
      null while paused. Tag timer actions (e.g. a sequence number) and ignore stale ones.
    - `hostView(state)` - what only the host screen sees.
+   - `privateView(state, participantId)` - what one player alone sees. A secret one player holds
+     for the room (Fishbowl's presenter and their current clue) belongs here, never in
+     `publicView` - the host screen is in front of everyone.
    - React to `SYSTEM_ACTIONS` (`system:participants-changed`, `system:host-connection`). Clients
      can never send `system:*` actions.
    - Return `silent: true` from `handleAction` for a change no screen needs to see (Point of Hue's
