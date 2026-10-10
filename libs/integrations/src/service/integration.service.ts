@@ -30,9 +30,14 @@ const REFRESH_SKEW_MS = 60_000;
 
 // The API's own externally reachable origin - the OAuth redirect URI every provider app must have
 // registered, verbatim. Spotify no longer accepts "localhost" redirect URIs, only loopback IPs or
-// HTTPS, hence 127.0.0.1 rather than localhost as the dev default.
+// HTTPS, hence 127.0.0.1 rather than localhost as the dev default. RENDER_EXTERNAL_URL is set
+// automatically on Render web services, so a deploy there works without API_PUBLIC_URL configured.
 const getApiPublicUrl = (): string =>
-  (process.env['API_PUBLIC_URL'] || `http://127.0.0.1:${process.env['PORT'] || 3000}`).replace(/\/+$/, '');
+  (
+    process.env['API_PUBLIC_URL'] ||
+    process.env['RENDER_EXTERNAL_URL'] ||
+    `http://127.0.0.1:${process.env['PORT'] || 3000}`
+  ).replace(/\/+$/, '');
 
 // Same default as main.ts's own CORS origin - the SPA the callback sends the browser back to.
 const getWebOrigin = (): string => new URL(process.env['WEB_ORIGIN'] || 'http://localhost:5173').origin;

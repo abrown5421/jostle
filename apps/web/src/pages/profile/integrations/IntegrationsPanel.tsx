@@ -42,7 +42,11 @@ const useIntegrationCallbackAlert = (integrations: IntegrationCatalogEntry[] | u
     const name = integrations.find((entry) => entry.provider === provider)?.displayName ?? provider;
     if (result === 'connected') alert.success(`${name} connected.`, { position: ALERT_POSITION });
     else if (result === 'cancelled') alert.info(`${name} connection was cancelled.`, { position: ALERT_POSITION });
-    else alert.danger(`Could not connect ${name}. Please try again.`, { position: ALERT_POSITION });
+    else {
+      const errorCode = params.get('integrationError');
+      const detail = errorCode ? ` (${errorCode})` : '';
+      alert.danger(`Could not connect ${name}${detail}. Please try again.`, { position: ALERT_POSITION });
+    }
 
     for (const key of CALLBACK_PARAMS) params.delete(key);
     const search = params.toString();
